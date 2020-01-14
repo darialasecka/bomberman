@@ -5,11 +5,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import com.gdx.bomberman.sprites.Bomber;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -23,16 +27,29 @@ public class Bomberman extends ApplicationAdapter {
 	Socket socket;
 	String id;
 	Bomber player;
-	Texture playerBomber;
-	Texture enemyBomber;
+	TextureAtlas textureAtlas;
+	TextureRegion textureRegion;
+	Sprite playerBomber;
+	Sprite enemyBomber;
 	HashMap<String, Bomber> otherPlayers;
+	DataOutputStream out;
+	DataInputStream in;
+	public float x;
+	public float y;
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		playerBomber = new Texture("inky.png");
-		enemyBomber = new Texture("blinky.png");
+
+		textureAtlas = new TextureAtlas(Gdx.files.internal("Spritesheet/Sprites.atlas"));
+		textureRegion = textureAtlas.findRegion("sprite002");
+
+		playerBomber = new Sprite(textureRegion);
+		enemyBomber = new Sprite(textureRegion);
+		playerBomber.setSize(playerBomber.getWidth()*2, playerBomber.getHeight()*2);
+		enemyBomber.setSize(enemyBomber.getWidth()*2, enemyBomber.getHeight()*2);
 		otherPlayers = new HashMap<>();
+
 		connectSocket();
 	}
 
@@ -52,18 +69,24 @@ public class Bomberman extends ApplicationAdapter {
 		}
 	}
 
-	/*public void updateServer(float dt){ //póżniej z tutoriala spisac znowu
+	public void updateServer(float dt){
 		timer += dt;
-		if(timer >= UPDATE_TIME && pl)
-	}*/
+		if(timer >= UPDATE_TIME && player != null){
+			try{
+				out.writeUTF("playerMoved " +  player.getX() + " " +  player.getY());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(1, 1, 1, 1);
+		Gdx.gl.glClearColor(0, 1, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		handleInput(Gdx.graphics.getDeltaTime());
-		//updateServer(Gdx.graphics.getDeltaTime());
+		updateServer(Gdx.graphics.getDeltaTime());
 
 		batch.begin();
 		if(player != null){
@@ -78,8 +101,6 @@ public class Bomberman extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		batch.dispose();
-		playerBomber.dispose();
-		enemyBomber.dispose();
 	}
 
 	public void connectSocket(){
@@ -88,11 +109,68 @@ public class Bomberman extends ApplicationAdapter {
 			socket = new Socket(address, port);
 			System.out.println("You are connected by: " + socket.getLocalPort() + ".");
 			player = new Bomber(playerBomber);
-			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-			out.writeUTF("Test");
+			out = new DataOutputStream(socket.getOutputStream());
+			in = new DataInputStream(socket.getInputStream());
+			new ServerConnection(in, out, this).start();
 		} catch(Exception e) {
 			System.out.println(e);
 		}
 	}
 
+}
+
+class ServerConnection extends Thread {
+
+	private DataInputStream in;
+	private DataOutputStream out;
+	private Bomberman bomberman;
+
+
+	public ServerConnection(DataInputStream in, DataOutputStream out, Bomberman bomberman) {
+		this.in = in;
+		this.out = out;
+		this.bomberman = bomberman;
+	}
+
+	public void run() {
+		try {
+			out.writeUTF("connected");
+			while (true) {
+				String msg = in.readUTF();
+				if (msg.startsWith("update")) {
+					String id = msg.split(" ")[1];
+					String x = msg.split(" ")[2];
+					String y = msg.split(" ")[3];
+					if (bomberman.otherPlayers.get(id) != null) {
+						bomberman.otherPlayers.get(id).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+					} else if (bomberman.id != null && id.equals(bomberman.id) && bomberman.player != null) {
+						bomberman.player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
+						bomberman.x = Float.parseFloat(x);
+						bomberman.y = Float.parseFloat(y);
+					} else if (bomberman.id != null && !id.equals(bomberman.id)){
+						String playerId = id;
+						Bomber hero = new Bomber(bomberman.enemyBomber);
+						bomberman.otherPlayers.put(playerId, hero);
+						bomberman.otherPlayers.get(playerId).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+					}
+				} else if (msg.startsWith("created")) {
+					bomberman.id = msg.split(" ")[1];
+					String x = msg.split(" ")[2];
+					String y = msg.split(" ")[3];
+					bomberman.player = new Bomber(bomberman.playerBomber);
+					bomberman.player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
+					bomberman.x = Float.parseFloat(x);
+					bomberman.y = Float.parseFloat(y);
+				} else if (msg.startsWith("remove")) {
+					String id = msg.split(" ")[1];
+					bomberman.otherPlayers.remove(id);
+				}
+			}
+		} catch (java.io.EOFException e) {
+			System.out.println("Connection has been lost.");
+			System.exit(3);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

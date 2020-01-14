@@ -45,6 +45,7 @@ class Multi extends Thread {
 	}
 
 	public void run()  {
+		System.out.println("Connected to " + player.socket.getPort() +".");
 		while (true) {
 			try {
 				String msg = player.in.readUTF();

@@ -2,11 +2,13 @@ package com.gdx.bomberman.sprites;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 
 public class Bomber extends Sprite {
 	Vector2 previousPosition;
+
 	public Bomber(Sprite texture) {
 		super(texture);
 		previousPosition = new Vector2(getX(), getY());

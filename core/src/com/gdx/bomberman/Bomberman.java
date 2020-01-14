@@ -1,17 +1,13 @@
 package com.gdx.bomberman;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.math.Vector2;
 
 import com.gdx.bomberman.sprites.Bomber;
+import com.gdx.bomberman.screens.PlayScreen;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,23 +15,25 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashMap;
 
-public class Bomberman extends ApplicationAdapter {
+public class Bomberman extends Game {
 	public final int port = 8080;
 	private final float UPDATE_TIME = 1/60f;
 	float timer;
 	SpriteBatch batch;
 	Socket socket;
 	String id;
-	Bomber player;
+	public Bomber player;
 	TextureAtlas textureAtlas;
 	TextureRegion textureRegion;
 	Sprite playerBomber;
 	Sprite enemyBomber;
-	HashMap<String, Bomber> otherPlayers;
-	DataOutputStream out;
-	DataInputStream in;
+	public HashMap<String, Bomber> otherPlayers;
+	public DataOutputStream out;
+	public DataInputStream in;
 	public float x;
 	public float y;
+	PlayScreen screen;
+
 	
 	@Override
 	public void create () {
@@ -46,14 +44,18 @@ public class Bomberman extends ApplicationAdapter {
 
 		playerBomber = new Sprite(textureRegion);
 		enemyBomber = new Sprite(textureRegion);
-		playerBomber.setSize(playerBomber.getWidth()*2, playerBomber.getHeight()*2);
-		enemyBomber.setSize(enemyBomber.getWidth()*2, enemyBomber.getHeight()*2);
+		float scale = 1.6f;
+		playerBomber.setSize(playerBomber.getWidth() * scale, playerBomber.getHeight() * scale);
+		enemyBomber.setSize(enemyBomber.getWidth() * scale, enemyBomber.getHeight() * scale);
 		otherPlayers = new HashMap<>();
+
+		screen = new PlayScreen(this);
+		setScreen(screen);
 
 		connectSocket();
 	}
 
-	public void handleInput(float dt){
+	/*public void handleInput(float dt){
 		if(player != null){
 			if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 				player.setPosition(player.getX() + (-200 * dt), player.getY());
@@ -96,7 +98,7 @@ public class Bomberman extends ApplicationAdapter {
 			entry.getValue().draw(batch);
 		}
 		batch.end();
-	}
+	}*/
 	
 	@Override
 	public void dispose () {
@@ -116,7 +118,6 @@ public class Bomberman extends ApplicationAdapter {
 			System.out.println(e);
 		}
 	}
-
 }
 
 class ServerConnection extends Thread {

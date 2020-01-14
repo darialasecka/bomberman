@@ -52,6 +52,11 @@ public class Bomberman extends ApplicationAdapter {
 		}
 	}
 
+	/*public void updateServer(float dt){ //póżniej z tutoriala spisac znowu
+		timer += dt;
+		if(timer >= UPDATE_TIME && pl)
+	}*/
+
 	@Override
 	public void render () {
 		Gdx.gl.glClearColor(1, 1, 1, 1);
@@ -83,6 +88,8 @@ public class Bomberman extends ApplicationAdapter {
 			socket = new Socket(address, port);
 			System.out.println("You are connected by: " + socket.getLocalPort() + ".");
 			player = new Bomber(playerBomber);
+			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+			out.writeUTF("Test");
 		} catch(Exception e) {
 			System.out.println(e);
 		}

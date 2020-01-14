@@ -1,0 +1,111 @@
+
+Sprites.png
+size: 64,128
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+sprite
+  rotate: false
+  xy: 2, 102
+  size: 16, 24
+  orig: 16, 24
+  offset: 0, 0
+  index: 4
+sprite
+  rotate: false
+  xy: 2, 76
+  size: 16, 24
+  orig: 16, 24
+  offset: 0, 0
+  index: 10
+sprite
+  rotate: false
+  xy: 20, 102
+  size: 15, 24
+  orig: 15, 24
+  offset: 0, 0
+  index: 7
+sprite
+  rotate: false
+  xy: 2, 50
+  size: 15, 24
+  orig: 15, 24
+  offset: 0, 0
+  index: 8
+sprite
+  rotate: false
+  xy: 20, 76
+  size: 15, 24
+  orig: 15, 24
+  offset: 0, 0
+  index: 9
+sprite
+  rotate: false
+  xy: 37, 103
+  size: 16, 23
+  orig: 16, 23
+  offset: 0, 0
+  index: 11
+sprite
+  rotate: false
+  xy: 2, 25
+  size: 15, 23
+  orig: 15, 23
+  offset: 0, 0
+  index: 1
+sprite
+  rotate: false
+  xy: 19, 51
+  size: 15, 23
+  orig: 15, 23
+  offset: 0, 0
+  index: 3
+sprite
+  rotate: false
+  xy: 37, 78
+  size: 15, 23
+  orig: 15, 23
+  offset: 0, 0
+  index: 5
+sprite
+  rotate: false
+  xy: 19, 26
+  size: 15, 23
+  orig: 15, 23
+  offset: 0, 0
+  index: 13
+sprite
+  rotate: false
+  xy: 2, 3
+  size: 15, 20
+  orig: 15, 20
+  offset: 0, 0
+  index: 15
+sprite
+  rotate: false
+  xy: 19, 2
+  size: 17, 22
+  orig: 17, 22
+  offset: 0, 0
+  index: 12
+sprite
+  rotate: false
+  xy: 36, 52
+  size: 15, 22
+  orig: 15, 22
+  offset: 0, 0
+  index: 2
+sprite
+  rotate: false
+  xy: 36, 28
+  size: 16, 22
+  orig: 16, 22
+  index: 6
+  offset: 0, 0
+sprite
+  rotate: false
+  xy: 38, 4
+  size: 15, 22
+  orig: 15, 22
+  offset: 0, 0
+  index: 14

@@ -11,10 +11,10 @@ class Player {
 	public DataOutputStream	out;
 	public DataInputStream in;
 
-	public Player(double x, double y, int id, Socket socket) throws IOException {
+	public Player(double x, double y, Socket socket) throws IOException {
 		this.x = x;
 		this.y = y;
-		this.id = id;
+		this.socket = socket;
 		this.out = new DataOutputStream(socket.getOutputStream());
 		this.in = new DataInputStream(socket.getInputStream());
 	}
@@ -36,6 +36,35 @@ class Room {
 	}
 }
 
+class Multi extends Thread {
+	private Player player;
+	private Server server;
+	private DataOutputStream out;
+	private DataInputStream in;
+
+	Multi(Player player) throws IOException {
+		this.player = player;
+		System.out.println(player);
+	}
+
+	public void run() {
+		System.out.println("Connected to New Player: " + player.socket.getPort() + ".");
+		while(true) {
+			try {
+				String msg = player.in.readUTF();
+				System.out.print(msg);
+				if(msg.startsWith("movePlayer")){
+					player.x = msg.split(" ")[1];
+					player.y = msg.split(" ")[2];
+				}
+
+			} catch (Exception e) {
+				server.players.remove(player);
+			}
+		}
+	}
+}
+
 public class Server extends Thread{
 	public static int port = 8080;
 	public static ServerSocket serverSocket = null;
@@ -54,11 +83,9 @@ public class Server extends Thread{
 			try {
 				Socket socket = serverSocket.accept();
 				//na razie niech wszyscy się tworzą na 0,0, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length
-				Player player = new Player(0,0, id, socket);
-				System.out.println("New Player Connected: " + id + " by " + socket.getPort() );
+				Player player = new Player(0,0, socket);
 				players.add(player);
-				id++;
-				//new Multi(sock, out).start(); //coś co ogarnie klientów
+				new Multi(player).start(); //coś co ogarnie klientów
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("Failed to connect to client.");
@@ -66,7 +93,7 @@ public class Server extends Thread{
 		}
 	}
 
-	private void broadcast(String s) {
+	private static void broadcast(String s) {
 		DataOutputStream out = null;
 		for(Player player: players) {
 			out = (DataOutputStream) player.out;
@@ -76,31 +103,6 @@ public class Server extends Thread{
 				e.printStackTrace();
 				//System.out.println("Failed to broadcast to client.");
 				players.remove(player);
-			}
-		}
-	}
-}
-
-
-class Multi extends Thread {
-	private Player player;
-	private Server server;
-	private DataOutputStream out;
-	private DataInputStream in;
-
-	Multi(Player player, Server server) throws IOException {
-		this.player = player;
-		this.server = server;
-	}
-
-	public void run() {
-		System.out.println("Connected to " + player.socket.getPort() +".");
-		while(true) {
-			try {
-				//tu obsługa poleceń
-
-			} catch (Exception e) {
-				server.players.remove(player);
 			}
 		}
 	}

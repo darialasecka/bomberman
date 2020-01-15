@@ -4,6 +4,9 @@ import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Vector2;
 
 import com.gdx.bomberman.sprites.Bomber;
@@ -24,27 +27,37 @@ public class Bomberman extends Game {
 	String id;
 	public Bomber player;
 	TextureAtlas textureAtlas;
-	TextureRegion textureRegion;
-	Sprite playerBomber;
-	Sprite enemyBomber;
+	public TextureRegion textureRegionUp;
+	public TextureRegion textureRegionDown;
+	public TextureRegion textureRegionLeft;
+	public TextureRegion textureRegionRight;
+	public Sprite playerBomber;
+	public Sprite enemyBomber;
 	public HashMap<String, Bomber> otherPlayers;
 	public DataOutputStream out;
 	public DataInputStream in;
 	public float x;
 	public float y;
 	PlayScreen screen;
+	public TiledMap map;
+	public int direction; // 0-left, 1-right, 2-up, 3-down
 
-	
+
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
 
-		textureAtlas = new TextureAtlas(Gdx.files.internal("Spritesheet/Sprites.atlas"));
-		textureRegion = textureAtlas.findRegion("sprite002");
+		map = new TmxMapLoader().load("map/map.tmx");
 
-		playerBomber = new Sprite(textureRegion);
-		enemyBomber = new Sprite(textureRegion);
-		float scale = 1.6f;
+		textureAtlas = new TextureAtlas(Gdx.files.internal("Spritesheet/Sprites.atlas"));
+		textureRegionUp = textureAtlas.findRegion("sprite002");
+		textureRegionDown = textureAtlas.findRegion("sprite008");
+		textureRegionLeft = textureAtlas.findRegion("sprite004");
+		textureRegionRight = textureAtlas.findRegion("sprite010");
+
+		playerBomber = new Sprite(textureRegionUp);
+		enemyBomber = new Sprite(textureRegionUp);
+		float scale = 1;//1.6f;
 		playerBomber.setSize(playerBomber.getWidth() * scale, playerBomber.getHeight() * scale);
 		enemyBomber.setSize(enemyBomber.getWidth() * scale, enemyBomber.getHeight() * scale);
 		otherPlayers = new HashMap<>();
@@ -55,51 +68,6 @@ public class Bomberman extends Game {
 		connectSocket();
 	}
 
-	/*public void handleInput(float dt){
-		if(player != null){
-			if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-				player.setPosition(player.getX() + (-200 * dt), player.getY());
-			} else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
-				player.setPosition(player.getX() + (+200 * dt), player.getY());
-			}
-			if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-				player.setPosition(player.getX(), player.getY() + (+200 * dt));
-			} else if (Gdx.input.isKeyPressed(Input.Keys.DOWN)){
-				player.setPosition(player.getX(), player.getY()+ (-200 * dt));
-			}
-
-		}
-	}
-
-	public void updateServer(float dt){
-		timer += dt;
-		if(timer >= UPDATE_TIME && player != null){
-			try{
-				out.writeUTF("playerMoved " +  player.getX() + " " +  player.getY());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	@Override
-	public void render () {
-		Gdx.gl.glClearColor(0, 1, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-		handleInput(Gdx.graphics.getDeltaTime());
-		updateServer(Gdx.graphics.getDeltaTime());
-
-		batch.begin();
-		if(player != null){
-			player.draw(batch);
-		}
-		for(HashMap.Entry<String, Bomber> entry: otherPlayers.entrySet()){
-			entry.getValue().draw(batch);
-		}
-		batch.end();
-	}*/
-	
 	@Override
 	public void dispose () {
 		batch.dispose();
@@ -110,7 +78,7 @@ public class Bomberman extends Game {
 			InetAddress address = InetAddress.getLocalHost();
 			socket = new Socket(address, port);
 			System.out.println("You are connected by: " + socket.getLocalPort() + ".");
-			player = new Bomber(playerBomber);
+			//player = new Bomber(playerBomber, (TiledMapTileLayer) map.getLayers().get(0));
 			out = new DataOutputStream(socket.getOutputStream());
 			in = new DataInputStream(socket.getInputStream());
 			new ServerConnection(in, out, this).start();
@@ -150,7 +118,7 @@ class ServerConnection extends Thread {
 						bomberman.y = Float.parseFloat(y);
 					} else if (bomberman.id != null && !id.equals(bomberman.id)){
 						String playerId = id;
-						Bomber hero = new Bomber(bomberman.enemyBomber);
+						Bomber hero = new Bomber(bomberman.enemyBomber, (TiledMapTileLayer) bomberman.map.getLayers().get(0), 0);
 						bomberman.otherPlayers.put(playerId, hero);
 						bomberman.otherPlayers.get(playerId).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					}
@@ -158,7 +126,7 @@ class ServerConnection extends Thread {
 					bomberman.id = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
 					String y = msg.split(" ")[3];
-					bomberman.player = new Bomber(bomberman.playerBomber);
+					bomberman.player = new Bomber(bomberman.playerBomber, (TiledMapTileLayer) bomberman.map.getLayers().get(0), 0);
 					bomberman.player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					bomberman.x = Float.parseFloat(x);
 					bomberman.y = Float.parseFloat(y);

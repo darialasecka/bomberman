@@ -46,8 +46,8 @@ public class Bomberman extends Game {
 	PlayScreen screen;
 	public int direction; // 0-left, 1-right, 2-up, 3-down
 	public HashMap<String, Bomb> bombs;
-
-	public int MAX_BOMBS;
+	public int currBombCounter = 0;
+	public int MAX_BOMBS = 2;
 	public int BOMB_POWER = 1;
 
 
@@ -169,6 +169,7 @@ class ServerConnection extends Thread {
 					String y = msg.split(" ")[2];
 					String power = msg.split(" ")[3];
 					String number = msg.split(" ")[4];
+					if(bomberman.bombs.get(number).bomberId == Integer.parseInt(bomberman.id)) bomberman.currBombCounter--;
 					bomberman.bombs.remove(number);
 
 

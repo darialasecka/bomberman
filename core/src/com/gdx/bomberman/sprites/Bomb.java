@@ -11,7 +11,7 @@ public class Bomb extends Sprite{
 	public long start;
 	public float x;
 	public float y;
-	int bomberId;
+	public int bomberId;
 	public int bombNumber;
 
 	public Bomb (Sprite sprite, float x, float y, int power, int id, int bombNumber, long start){

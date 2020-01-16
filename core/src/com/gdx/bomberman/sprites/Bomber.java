@@ -15,7 +15,6 @@ import com.badlogic.gdx.math.Vector2;
 
 
 public class Bomber extends Sprite /* implements InputProcessor*/ {
-	Vector2 previousPosition;
 
 	int direction;
 

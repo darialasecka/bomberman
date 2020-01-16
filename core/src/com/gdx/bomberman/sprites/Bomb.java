@@ -6,20 +6,23 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Bomb extends Sprite{
 	//Sprite sprite;
-	int power;
-	float timer; //to będzie stała
-	float x;
-	float y;
+	public int power;
+	public final float EXPLOSION_TIME = 3; //to będzie stała
+	public long start;
+	public float x;
+	public float y;
 	int bomberId;
-	int bombNumber;
+	public int bombNumber;
 
-	public Bomb (Sprite sprite, float x, float y, int power, int id, int bombNumber){
+	public Bomb (Sprite sprite, float x, float y, int power, int id, int bombNumber, long start){
 		super(sprite);
 		this.x = x;
 		this.y = y;
 		this.power = power;
 		this.bomberId = id;
 		this.bombNumber = bombNumber;
+		this.start = start;
+		//System.out.println(start+EXPLOSION_TIME);
 	}
 
 	public void draw(SpriteBatch spriteBatch){

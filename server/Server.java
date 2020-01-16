@@ -113,6 +113,8 @@ class Multi extends Thread {
 						player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
 					}
 				} else if (msg.startsWith("bomb")) {
+					Server.broadcast(msg + " " + Server.bombNumber++);
+				} else if (msg.startsWith("explosion")) {
 					Server.broadcast(msg);
 				}
 
@@ -134,6 +136,7 @@ public class Server extends Thread{
 	public static ServerSocket serverSocket = null;
 	public static List<Player> players = new ArrayList<>();
 	public static int id = 0;
+	public static int bombNumber = 0;
 
 	public static void main(String args[]) {
 		try {

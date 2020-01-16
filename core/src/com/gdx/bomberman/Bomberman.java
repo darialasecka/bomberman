@@ -9,6 +9,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Vector2;
 
+import com.gdx.bomberman.sprites.Blast;
 import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
 import com.gdx.bomberman.screens.PlayScreen;
@@ -36,6 +37,7 @@ public class Bomberman extends Game {
 	public Sprite playerBomber;
 	public Sprite enemyBomber;
 	public Sprite bombSprite;
+	public Sprite blastSprite;
 	public HashMap<String, Bomber> otherPlayers;
 	public DataOutputStream out;
 	public DataInputStream in;
@@ -46,7 +48,7 @@ public class Bomberman extends Game {
 	public HashMap<String, Bomb> bombs;
 
 	public int MAX_BOMBS;
-	public int BOMB_POWER;
+	public int BOMB_POWER = 1;
 
 
 
@@ -69,6 +71,7 @@ public class Bomberman extends Game {
 		bombs = new HashMap<>();
 
 		bombSprite = new Sprite(new Texture("items/bomb.png"));
+		blastSprite = new Sprite(new Texture("items/blastCenter1.png")); //pożniej to jakoś na animację zmnienimy
 
 		screen = new PlayScreen(this);
 		setScreen(screen);
@@ -142,12 +145,34 @@ class ServerConnection extends Thread {
 					String id = msg.split(" ")[1];
 					bomberman.otherPlayers.remove(id);
 				} else if (msg.startsWith("bomb")) {
+					System.out.println("Bomb");
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
-					String id = msg.split(" ")[3];
-					//zmienić id na bombnumber
-					bomberman.bombs.put(id, new Bomb(bomberman.bombSprite, Float.parseFloat(x), Float.parseFloat(y), 1, Integer.parseInt(id), 1)); //power na razie z automatu 1
-					bomberman.bombs.get(id).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+					String power = msg.split(" ")[3];
+					String start = msg.split(" ")[4];
+					String id = msg.split(" ")[5];
+					String number = msg.split(" ")[6];
+					Bomb bomb = new Bomb(bomberman.bombSprite, Float.parseFloat(x), Float.parseFloat(y), Integer.parseInt(power), Integer.parseInt(id), Integer.parseInt(number), Long.parseLong(start));
+					bomberman.bombs.put(number, bomb); //power na razie z automatu 1
+					bomberman.bombs.get(number).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+					//String power = msg.split(" ")[3];
+				} else if(msg.startsWith("explosion")) {
+					System.out.println("Wybuch!!!");
+
+
+					String x = msg.split(" ")[1];
+					String y = msg.split(" ")[2];
+					String power = msg.split(" ")[3];
+					String number = msg.split(" ")[4];
+					bomberman.bombs.remove(number);
+
+
+					//Blast blast = new Blast(bomberman.blastSprite, Float.parseFloat(x), Float.parseFloat(y), Integer.parseInt(power));
+					//w tablicy dopisać wybuchy
+
+
+					//bomberman.blasts.put(number, blast); //power na razie z automatu 1
+					//bomberman.blasts.get(number).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					//String power = msg.split(" ")[3];
 				}
 			}

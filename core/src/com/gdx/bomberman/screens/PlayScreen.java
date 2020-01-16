@@ -62,9 +62,8 @@ public class PlayScreen implements Screen {
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionDown);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
 				try{
-					System.out.println("bomb " +  bomberman.x + " " +  bomberman.y + " " + bomberman.id);
 					//bomb = new Bomb(bomberman.bombSprite, bomberman.x, bomberman.y, 0, Integer.parseInt(bomberman.id));
-					bomberman.out.writeUTF("bomb " +  bomberman.x + " " +  bomberman.y + " " + bomberman.id);//+ " " + bomberman.power
+					bomberman.out.writeUTF("bomb " +  bomberman.x + " " +  bomberman.y + " " + bomberman.BOMB_POWER + " " + System.currentTimeMillis() + " " + bomberman.id);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -84,6 +83,20 @@ public class PlayScreen implements Screen {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	public void updateExplosion(Bomb bomb){
+		long currTime = System.currentTimeMillis();
+		if((currTime - bomb.start) / 1000 > bomb.EXPLOSION_TIME){
+			try{
+				bomberman.out.writeUTF("explosion " +  bomb.x + " " +  bomb.y + " " + bomb.power + " " + bomb.bombNumber);
+				//bomberman.bombs.remove(bomb.bombNumber);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			bomb.draw(batch);
 		}
 	}
 
@@ -110,7 +123,7 @@ public class PlayScreen implements Screen {
 			bomb.draw(batch);
 		}
 		for(HashMap.Entry<String, Bomb> entry: bomberman.bombs.entrySet()){
-			entry.getValue().draw(batch);
+			updateExplosion(entry.getValue());
 		}
 		batch.end();
 	}

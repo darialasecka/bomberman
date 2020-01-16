@@ -34,11 +34,11 @@ public class PlayScreen implements Screen {
 
 	@Override
 	public void show() {
-		map = new TmxMapLoader().load("map/map.tmx");
-		renderer = new OrthogonalTiledMapRenderer(map);//1/1.98f
+		map = new TmxMapLoader().load("maps/map3c.tmx");
+		renderer = new OrthogonalTiledMapRenderer(map, 1/2f);//1/1.98f
 		camera = new OrthographicCamera();
-		//camera.position.set(275,210,0);
-		camera.position.set(350,200,0);
+		camera.position.set(275,210,0);
+		//camera.position.set(350,200,0);
 		//player =new Player(new Sprite(new Texture("inky.png")), (TiledMapTileLayer) map.getLayers().get(0));
 		//player.setPosition(40, 350);
 	}
@@ -48,19 +48,23 @@ public class PlayScreen implements Screen {
 		if(bomberman.player != null){
 			//batch.begin();
 			if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+				bomberman.x += (-speed* dt);
 				bomberman.direction = 0;
-				bomberman.player.setPosition(bomberman.player.getX() + (-speed * dt), bomberman.player.getY());
+				//bomberman.player.setPosition(bomberman.player.getX() + (-speed * dt), bomberman.player.getY());
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionLeft);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
 				bomberman.direction = 1;
-				bomberman.player.setPosition(bomberman.player.getX() + (+speed * dt), bomberman.player.getY());
+				bomberman.x += (speed * dt);
+				//bomberman.player.setPosition(bomberman.player.getX() + (+speed * dt), bomberman.player.getY());
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionRight);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-				bomberman.player.setPosition(bomberman.player.getX(), bomberman.player.getY() + (+speed * dt));
+				bomberman.y += (speed * dt);
+				//bomberman.player.setPosition(bomberman.player.getX(), bomberman.player.getY() + (+speed * dt));
 				bomberman.direction = 2;
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionUp);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.DOWN)){
-				bomberman.player.setPosition(bomberman.player.getX(), bomberman.player.getY()+ (-speed * dt));
+				bomberman.y += (-speed * dt);
+				//bomberman.player.setPosition(bomberman.player.getX(), bomberman.player.getY()+ (-speed * dt));
 				bomberman.direction = 3;
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionDown);
 			}
@@ -74,7 +78,7 @@ public class PlayScreen implements Screen {
 		timer += dt;
 		if(timer >= UPDATE_TIME && bomberman.player != null){
 			try{
-				bomberman.out.writeUTF("playerMoved " +  bomberman.player.getX() + " " +  bomberman.player.getY());
+				bomberman.out.writeUTF("playerMoved " +  bomberman.x + " " +  bomberman.y + " " + bomberman.direction);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -86,8 +90,8 @@ public class PlayScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		//handleInput(Gdx.graphics.getDeltaTime());
-		//updateServer(Gdx.graphics.getDeltaTime());
+		handleInput(Gdx.graphics.getDeltaTime());
+		updateServer(Gdx.graphics.getDeltaTime());
 
 		renderer.setView(camera);
 		renderer.render();

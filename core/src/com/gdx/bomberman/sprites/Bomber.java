@@ -12,6 +12,9 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class Bomber extends Sprite /* implements InputProcessor*/ {
 	Vector2 previousPosition;
@@ -32,11 +35,26 @@ public class Bomber extends Sprite /* implements InputProcessor*/ {
 	}
 
 	public void draw(SpriteBatch spriteBatch){
-		update(Gdx.graphics.getDeltaTime());
+		//update(Gdx.graphics.getDeltaTime());
 		super.draw(spriteBatch);
 	}
 
 	public void update(float delta){
+	/*ArrayList<ArrayList> map = new ArrayList<>();
+
+		List allOne = new ArrayList();
+		for(int i=0; i<17; i++)
+			allOne.add(1);
+		List mixed = new ArrayList();
+		for(int i=0; i<17; i++){
+			if(i%2 == 0 )
+				mixed.add(0);
+			else mixed.add(1);
+		}
+		System.out.println(allOne);
+		System.out.println(mixed);*/
+
+
 		velocity.y -= gravity * delta;
 
 		if(velocity.y > speed){

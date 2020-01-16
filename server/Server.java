@@ -39,10 +39,47 @@ class Room {
 
 class Multi extends Thread {
 	private Player player;
-	
+	final float wallDown = 34;
+	final float wallUp = 354;//?
+	final float wallLeft = 34;
+	final float wallRight = 495;//?
+	float blockSize = 32; //??
+	public ArrayList<ArrayList<String>> map = new ArrayList<ArrayList<String>>();
+
+
 	Multi(Player player) throws IOException {
 		this.player = player;
+
+
+		ArrayList walls = new ArrayList<String>();
+		for(int i=0; i<17; i++)
+			walls.add("1");
+		ArrayList mixed = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i%2 == 1) mixed.add("0");
+			else mixed.add("1");
+		}
+		ArrayList floor = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i == 0 || i ==16) floor.add("1");
+			else floor.add("0");
+		}
+		/*System.out.println(walls);
+		System.out.println(mixed);
+		System.out.println(floor);*/
+		map.add(walls);
+		for(int i=0; i<11; i++){
+			if(i%2 == 0) map.add(floor);
+			else map.add(mixed);
+		}
+		map.add(walls);
+		/*for(int i=0; i<map.size(); i++){
+			System.out.println(map.get(i));
+		}*/
 	}
+
+
+
 
 	public void run()  {
 		System.out.println("Connected to " + player.socket.getPort() +".");
@@ -54,8 +91,32 @@ class Multi extends Thread {
 				} else if (msg.startsWith("playerMoved")) {
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
-					player.x = Float.parseFloat(x);
-					player.y = Float.parseFloat(y);
+					int direction = Integer.parseInt(msg.split(" ")[3]);
+					int posX = (int)(player.x / blockSize);// tak chemy zaokrąglić w górę
+					int posY = (int)(player.y / blockSize);
+					posY = map.size()-posY - 1;
+					//System.out.println(posX + " " + posY);
+
+					if(direction == 0){//lewo
+						//System.out.println(posX + " " + map.get(posY).get(posX));
+						if(map.get(posY).get(posX) == "0") player.x = Float.parseFloat(x);
+							/*System.out.println("Tak");
+						else System.out.println("Nie");*/
+					} else if(direction == 1) {//prawo
+						posX = (int)(((player.x) / blockSize) - 0.5);
+						if(map.get(posY).get(posX+1) == "0") player.x = Float.parseFloat(x);
+					} else if(direction == 2){//góra
+						posY = (int)((player.y / blockSize) - 0.75);
+						posY = map.size()-posY-2;
+						if(map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
+					} else if(direction == 3) {//dól
+						if(map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
+					}
+
+
+
+
+					//player.y = Float.parseFloat(y);
 					for (Player other : Server.players) {
 						player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
 					}

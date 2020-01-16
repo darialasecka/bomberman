@@ -14,7 +14,9 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.gdx.bomberman.Bomberman;
 import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
+import com.gdx.bomberman.sprites.Box;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PlayScreen implements Screen {
@@ -119,6 +121,12 @@ public class PlayScreen implements Screen {
 		renderer.render();
 
 		batch.begin();
+		try{
+			for(HashMap.Entry<String, Box> entry: bomberman.boxes.entrySet()){
+				entry.getValue().draw(batch);
+			}
+		} catch(Exception e) {}
+
 		if(bomberman.player != null){
 			bomberman.player.draw(batch);
 			//bomberman.player.update(Gdx.graphics.getDeltaTime());
@@ -134,6 +142,8 @@ public class PlayScreen implements Screen {
 				updateExplosion(entry.getValue());
 			}
 		} catch(Exception e) {}
+
+
 		batch.end();
 	}
 

@@ -9,11 +9,13 @@ import com.gdx.bomberman.sprites.Blast;
 import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
 import com.gdx.bomberman.screens.PlayScreen;
+import com.gdx.bomberman.sprites.Box;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Bomberman extends Game {
@@ -30,6 +32,7 @@ public class Bomberman extends Game {
 	public Sprite playerBomber;
 	public Sprite enemyBomber;
 	public Sprite bombSprite;
+	public Sprite boxSprite;
 	public Sprite blastC1;
 	public HashMap<String, Bomber> otherPlayers;
 	public DataOutputStream out;
@@ -42,6 +45,9 @@ public class Bomberman extends Game {
 	public int currBombCounter = 0;
 	public int MAX_BOMBS = 2;
 	public int BOMB_POWER = 1;
+
+
+	public HashMap<String, Box> boxes;
 
 
 
@@ -60,10 +66,14 @@ public class Bomberman extends Game {
 		float scale = 1;//1.6f;
 		playerBomber.setSize(playerBomber.getWidth() * scale, playerBomber.getHeight() * scale);
 		enemyBomber.setSize(enemyBomber.getWidth() * scale, enemyBomber.getHeight() * scale);
+
 		otherPlayers = new HashMap<>();
 		bombs = new HashMap<>();
+		boxes = new HashMap<>();
 
 		bombSprite = new Sprite(new Texture("items/bomb.png"));
+		boxSprite = new Sprite(new Texture("items/box.png"));
+		boxSprite.setSize(boxSprite.getWidth() * 0.5f, boxSprite.getHeight() * 0.5f);
 		blastC1 = new Sprite(new Texture("items/blastCenter1.png")); //pożniej to jakoś na animację zmnienimy
 
 		screen = new PlayScreen(this);
@@ -139,7 +149,17 @@ class ServerConnection extends Thread {
 					bomberman.player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					bomberman.x = Float.parseFloat(x);
 					bomberman.y = Float.parseFloat(y);
-				} else if (msg.startsWith("remove")) {
+				} else if(msg.startsWith("box")){
+					String number = msg.split(" ")[1];
+					String x = msg.split(" ")[2];
+					String y = msg.split(" ")[3];
+					Box box = new Box(bomberman.boxSprite, Float.parseFloat(x), Float.parseFloat(y));
+					bomberman.boxes.put(number, box);
+					bomberman.boxes.get(number).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+
+				}
+
+				else if (msg.startsWith("remove")) {
 					String id = msg.split(" ")[1];
 					bomberman.otherPlayers.remove(id);
 				} else if (msg.startsWith("bomb")) {

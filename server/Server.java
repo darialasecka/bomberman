@@ -42,39 +42,145 @@ class Multi extends Thread {
 	float blockSize = 32;
 	public ArrayList<ArrayList<String>> map = new ArrayList<ArrayList<String>>();
 
+	ArrayList walls;
+	ArrayList mixed1;//5
+	ArrayList mixed2;
+	ArrayList mixed3;
+	ArrayList mixed4;
+	ArrayList mixed5;
+	ArrayList floor1;//6
+	ArrayList floor2;
+	ArrayList floor3;
+	ArrayList floor4;
+	ArrayList floor5;
+	ArrayList floor6;
+
+	public ArrayList<ArrayList<String>> boxes = new ArrayList<ArrayList<String>>();
+
 	Multi(Player player) throws IOException {
 		this.player = player;
 
-		//making map to check collision
-		ArrayList walls = new ArrayList<String>();
-		for(int i=0; i<17; i++)
-			walls.add("1");
-		ArrayList mixed = new ArrayList<String>();
-		for(int i=0; i<17; i++){
-			if(i%2 == 1) mixed.add("0");
-			else mixed.add("1");
-		}
-		ArrayList floor = new ArrayList<String>();
-		for(int i=0; i<17; i++){
-			if(i == 0 || i ==16) floor.add("1");
-			else floor.add("0");
-		}
-		/*System.out.println(walls);
-		System.out.println(mixed);
-		System.out.println(floor);*/
-		map.add(walls);
-		for(int i=0; i<11; i++){
-			if(i%2 == 0) map.add(floor);
-			else map.add(mixed);
-		}
-		map.add(walls);
-		/*for(int i=0; i<map.size(); i++){
+		setMap();
+		setBoxes();
+
+		for(int i=0; i<map.size(); i++){
 			System.out.println(map.get(i));
-		}*/
+		}
 	}
 
+	public void setMap(){
+		walls = new ArrayList<String>();
+		for(int i=0; i<17; i++)
+			walls.add("1");
+
+		mixed1 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i%2 == 1) mixed1.add("0");
+			else mixed1.add("1");
+		}
+		mixed2 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i%2 == 1) mixed2.add("0");
+			else mixed2.add("1");
+		}
+		mixed3 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i%2 == 1) mixed3.add("0");
+			else mixed3.add("1");
+		}
+		mixed4 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i%2 == 1) mixed4.add("0");
+			else mixed4.add("1");
+		}
+		mixed5 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i%2 == 1) mixed5.add("0");
+			else mixed5.add("1");
+		}
+
+		floor1 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i == 0 || i ==16) floor1.add("1");
+			else floor1.add("0");
+		}
+		floor2 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i == 0 || i ==16) floor2.add("1");
+			else floor2.add("0");
+		}
+		floor3 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i == 0 || i ==16) floor3.add("1");
+			else floor3.add("0");
+		}
+		floor4 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i == 0 || i ==16) floor4.add("1");
+			else floor4.add("0");
+		}
+		floor5 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i == 0 || i ==16) floor5.add("1");
+			else floor5.add("0");
+		}
+		floor6 = new ArrayList<String>();
+		for(int i=0; i<17; i++){
+			if(i == 0 || i ==16) floor6.add("1");
+			else floor6.add("0");
+		}
 
 
+		map.add(walls);
+
+		map.add(floor1);
+		map.add(mixed1);
+		map.add(floor2);
+		map.add(mixed2);
+		map.add(floor3);
+		map.add(mixed3);
+		map.add(floor4);
+		map.add(mixed4);
+		map.add(floor5);
+		map.add(mixed5);
+		map.add(floor6);
+
+		/*for(int i=0; i<11; i++){
+			if(i%2 == 0) map.add(floor);
+			else map.add(mixed);
+		}*/
+		map.add(walls);
+	}
+
+	public void setBoxes(){
+		//boxy ustawiam na 2;
+		String box = "2";
+		map.get(1).set(2, box);
+		map.get(1).set(4, box);
+		map.get(1).set(6, box);
+		map.get(1).set(7, box);
+		map.get(1).set(8, box);
+		map.get(1).set(11, box);
+		map.get(1).set(12, box);
+
+		map.get(2).set(5, box);
+		map.get(2).set(9, box);
+		map.get(2).set(11, box);
+		map.get(2).set(13, box);
+
+		map.get(3).set(3, box);
+		map.get(3).set(4, box);
+		map.get(3).set(5, box);
+		map.get(3).set(6, box);
+		map.get(3).set(9, box);
+		map.get(3).set(10, box);
+		map.get(3).set(12, box);
+		map.get(3).set(13, box);
+		map.get(3).set(14, box);
+		map.get(3).set(15, box);
+
+
+	}
 
 	public void run()  {
 		System.out.println("Connected to " + player.socket.getPort() +".");
@@ -87,6 +193,15 @@ class Multi extends Thread {
 				if (msg.startsWith("connected")) {
 					synchronized (player.out){
 						player.out.writeUTF("created " + player.id + " " + player.x + " " + player.y);
+						for(int i = 1; i < map.size()-1; i++){
+							for(int j = 1; j < walls.size()-1; j++){ //którakolwiek
+								if (map.get(i).get(j) == "2"){
+									float boxX = (j * blockSize) - 0.5f;
+									float boxY = ((map.size() - 1.15f) * blockSize) - (i * blockSize);//chyba tak xd
+									player.out.writeUTF("box " + Server.boxNumber++ + " " + boxX + " " + boxY);
+								}
+							}
+						}
 					}
 				} else if (msg.startsWith("playerMoved")) {
 					String x = msg.split(" ")[1];
@@ -141,6 +256,7 @@ public class Server extends Thread{
 	public static List<Player> players = new ArrayList<>();
 	public static int id = 0;
 	public static int bombNumber = 0;
+	public static int boxNumber = 0;
 
 	public static void main(String args[]) {
 		try {

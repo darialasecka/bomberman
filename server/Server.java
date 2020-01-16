@@ -10,20 +10,22 @@ class Player {
 	public Socket socket;
 	public DataOutputStream	out;
 	public DataInputStream in;
+	public int room;
 
-	public Player(float x, float y, String id, Socket socket) throws IOException {
+	public Player(float x, float y, String id, Socket socket, int room) throws IOException {
 		this.x = x;
 		this.y = y;
 		this.id = id;
 		this.socket = socket;
 		this.out = new DataOutputStream(socket.getOutputStream());
 		this.in = new DataInputStream(socket.getInputStream());
+		this.room = room;
 	}
 }
 
 class Room {
 	public int number;
-	public List<Player> players_in_game = new ArrayList<>();
+	public List<Player> players_in_room = new ArrayList<>();
 	public boolean active_game;
 	public boolean is_full;
 	public int curr_number_of_players = 0;
@@ -35,12 +37,28 @@ class Room {
 		this.active_game = false;
 		this.is_full = false;
 	}
+
+	public void broadcast(String msg) {
+		DataOutputStream out;
+		for(Player player: players_in_room) {
+			out = player.out;
+			try {
+				synchronized (player.out){
+					out.writeUTF(msg);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				//System.out.println("Failed to broadcast to client.");
+				players_in_room.remove(player);
+			}
+		}
+	}
 }
 
 class Multi extends Thread {
 	private Player player;
 	float blockSize = 32;
-	public ArrayList<ArrayList<String>> map = new ArrayList<ArrayList<String>>();
+	public ArrayList<ArrayList<String>> map = new ArrayList<>();
 
 	ArrayList walls;
 	ArrayList mixed1;//5
@@ -56,17 +74,16 @@ class Multi extends Thread {
 	ArrayList floor5;
 	ArrayList floor6;
 
-	public ArrayList<ArrayList<String>> boxes = new ArrayList<ArrayList<String>>();
 
-	Multi(Player player) throws IOException {
+	Multi(Player player){
 		this.player = player;
 
 		setMap();
 		setBoxes();
 
-		for(int i=0; i<map.size(); i++){
+		/*for(int i=0; i<map.size(); i++){
 			System.out.println(map.get(i));
-		}
+		}*/
 	}
 
 	public void setMap(){
@@ -247,7 +264,7 @@ class Multi extends Thread {
 	}
 
 	public void run()  {
-		System.out.println("Connected to " + player.socket.getPort() +".");
+		System.out.println("New player " + player.socket.getPort() + " connected.");
 		while (true) {
 			try {
 				String msg = "";
@@ -292,21 +309,25 @@ class Multi extends Thread {
 						if(map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
 					}
 					//player.y = Float.parseFloat(y);
-					for (Player other : Server.players) {
+					Room room = Server.rooms.get(player.room);
+					for (Player other : room.players_in_room) {
 						synchronized (player.out){
 							player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
 						}
 					}
 				} else if (msg.startsWith("bomb")) {
-					Server.broadcast(msg + " " + Server.bombNumber++);
+					Room room = Server.rooms.get(player.room);
+					room.broadcast(msg + " " + Server.bombNumber++);
 				} else if (msg.startsWith("explosion")) {
-					Server.broadcast(msg);
+					Room room = Server.rooms.get(player.room);
+					room.broadcast(msg);
 				}
 
 			} catch (Exception e) {
 				Server.players.remove(player);
 				System.out.println("Player " + player.socket.getPort() + " disconnected.");
-				Server.broadcast("remove " + player.id);
+				Room room = Server.rooms.get(player.room);
+				room.broadcast("remove " + player.id);
 				break;
 			}
 		}
@@ -318,7 +339,9 @@ public class Server extends Thread{
 	public static int port = 8080;
 	public static ServerSocket serverSocket = null;
 	public static List<Player> players = new ArrayList<>();
+	public static List<Room> rooms = new ArrayList<>();
 	public static int id = 0;
+	public static int roomNumber = 0;
 	public static int bombNumber = 0;
 	public static int boxNumber = 0;
 
@@ -332,26 +355,44 @@ public class Server extends Thread{
 		System.out.println("Server is running...");
 		while (true) {
 			try {
-				Socket socket = serverSocket.accept();
-				//na razie niech wszyscy się tworzą na 40,40, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length w danym pokoju
-				Player player = new Player(40,40, Integer.toString(id), socket);
-				players.add(player);
-				new Multi(player).start(); //coś co ogarnie klientów
-				id++;
-			} catch (IOException e) {
+				Room room = new Room(roomNumber);
+				rooms.add(room);
+				System.out.println("Created room " + roomNumber);
+				while(!room.active_game || !room.is_full){
+					try {
+						Socket socket = serverSocket.accept();
+						//na razie niech wszyscy się tworzą na 40,40, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length w danym pokoju
+						Player player = new Player(40,40, Integer.toString(id), socket, roomNumber);
+						room.players_in_room.add(player);
+						room.curr_number_of_players ++;
+						players.add(player);
+						new Multi(player).start(); //coś co ogarnie klientów
+						id++;
+						if(room.curr_number_of_players == room.MAX_CAPACITY){
+							room.is_full = true;
+							break;
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.out.println("Failed to connect to client.");
+					}
+				}
+				roomNumber++;
+			} catch (Exception e){
 				e.printStackTrace();
-				System.out.println("Failed to connect to client.");
+				System.out.println("Failed to create room.");
 			}
 		}
-	}
 
-	public static void broadcast(String s) {
+	}
+	//sends message to all players in room
+	public static void broadcast(String msg) {
 		DataOutputStream out;
 		for(Player player: players) {
 			out = player.out;
 			try {
 				synchronized (player.out){
-					out.writeUTF(s);
+					out.writeUTF(msg);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

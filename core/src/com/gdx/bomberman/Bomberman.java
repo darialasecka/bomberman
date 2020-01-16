@@ -194,11 +194,10 @@ class ServerConnection extends Thread {
 					//String power = msg.split(" ")[3];
 				}
 			}
-		} catch (java.io.EOFException e) {
-			System.out.println("Connection has been lost.");
-			System.exit(3);
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println("Connection has been lost.");
+			System.exit(1);
 		}
 	}
 }

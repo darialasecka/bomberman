@@ -48,6 +48,7 @@ class Multi extends Thread {
 	ArrayList mixed3;
 	ArrayList mixed4;
 	ArrayList mixed5;
+
 	ArrayList floor1;//6
 	ArrayList floor2;
 	ArrayList floor3;
@@ -155,6 +156,7 @@ class Multi extends Thread {
 	public void setBoxes(){
 		//boxy ustawiam na 2;
 		String box = "2";
+		//line 1
 		map.get(1).set(2, box);
 		map.get(1).set(4, box);
 		map.get(1).set(6, box);
@@ -162,12 +164,12 @@ class Multi extends Thread {
 		map.get(1).set(8, box);
 		map.get(1).set(11, box);
 		map.get(1).set(12, box);
-
+		//line 2
 		map.get(2).set(5, box);
 		map.get(2).set(9, box);
 		map.get(2).set(11, box);
 		map.get(2).set(13, box);
-
+		//line 3
 		map.get(3).set(3, box);
 		map.get(3).set(4, box);
 		map.get(3).set(5, box);
@@ -178,8 +180,70 @@ class Multi extends Thread {
 		map.get(3).set(13, box);
 		map.get(3).set(14, box);
 		map.get(3).set(15, box);
-
-
+		//line 4
+		map.get(4).set(1, box);
+		map.get(4).set(3, box);
+		map.get(4).set(7, box);
+		map.get(4).set(9, box);
+		map.get(4).set(13, box);
+		map.get(4).set(15, box);
+		//line 5
+		map.get(5).set(1, box);
+		map.get(5).set(2, box);
+		map.get(5).set(4, box);
+		map.get(5).set(5, box);
+		map.get(5).set(6, box);
+		map.get(5).set(8, box);
+		map.get(5).set(10, box);
+		map.get(5).set(11, box);
+		map.get(5).set(12, box);
+		map.get(5).set(13, box);
+		map.get(5).set(14, box);
+		//line 6
+		map.get(6).set(3, box);
+		map.get(6).set(5, box);
+		map.get(6).set(7, box);
+		map.get(6).set(13, box);
+		//line 7
+		map.get(7).set(1, box);
+		map.get(7).set(2, box);
+		map.get(7).set(4, box);
+		map.get(7).set(6, box);
+		map.get(7).set(9, box);
+		map.get(7).set(11, box);
+		map.get(7).set(14, box);
+		map.get(7).set(15, box);
+		//line 8
+		map.get(8).set(1, box);
+		map.get(8).set(2, box);
+		map.get(8).set(5, box);
+		map.get(8).set(7, box);
+		map.get(8).set(11, box);
+		map.get(8).set(15, box);
+		//line 9
+		map.get(9).set(2, box);
+		map.get(9).set(3, box);
+		map.get(9).set(6, box);
+		map.get(9).set(9, box);
+		map.get(9).set(12, box);
+		map.get(9).set(13, box);
+		map.get(9).set(14, box);
+		map.get(9).set(15, box);
+		//line 10
+		map.get(10).set(3, box);
+		map.get(10).set(5, box);
+		map.get(10).set(7, box);
+		map.get(10).set(9, box);
+		map.get(10).set(11, box);
+		map.get(10).set(13, box);
+		//line11
+		map.get(11).set(3, box);
+		map.get(11).set(4, box);
+		map.get(11).set(6, box);
+		map.get(11).set(8, box);
+		map.get(11).set(9, box);
+		map.get(11).set(10, box);
+		map.get(11).set(12, box);
 	}
 
 	public void run()  {
@@ -269,8 +333,8 @@ public class Server extends Thread{
 		while (true) {
 			try {
 				Socket socket = serverSocket.accept();
-				//na razie niech wszyscy się tworzą na 0,0, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length
-				Player player = new Player(100,100, Integer.toString(id), socket);
+				//na razie niech wszyscy się tworzą na 40,40, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length w danym pokoju
+				Player player = new Player(40,40, Integer.toString(id), socket);
 				players.add(player);
 				new Multi(player).start(); //coś co ogarnie klientów
 				id++;

@@ -56,7 +56,7 @@ public class Bomberman extends Game {
 		textureRegionRight = textureAtlas.findRegion("sprite010");
 
 		playerBomber = new Sprite(textureRegionUp);
-		enemyBomber = new Sprite(textureRegionUp);
+		enemyBomber = new Sprite(new Texture("Sprites/enemy2.png"));
 		float scale = 1;//1.6f;
 		playerBomber.setSize(playerBomber.getWidth() * scale, playerBomber.getHeight() * scale);
 		enemyBomber.setSize(enemyBomber.getWidth() * scale, enemyBomber.getHeight() * scale);
@@ -143,7 +143,6 @@ class ServerConnection extends Thread {
 					String id = msg.split(" ")[1];
 					bomberman.otherPlayers.remove(id);
 				} else if (msg.startsWith("bomb")) {
-					System.out.println("Bomb");
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
 					String power = msg.split(" ")[3];

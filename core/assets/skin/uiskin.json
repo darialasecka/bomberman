@@ -1,0 +1,12 @@
+{
+"com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
+	"toggle": {
+		"font": "font-button",
+		"fontColor": { "a": 1, "b": 1, "g": 1, "r": 1 },
+		"downFontColor": { "a": 1, "b": 1, "g": 0.2, "r": 1 },
+		"up": "toggle-button-off",
+		"down": "toggle-button-down",
+		"checked": "toggle-button"
+	},
+},
+}

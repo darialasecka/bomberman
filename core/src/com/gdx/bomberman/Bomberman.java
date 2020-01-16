@@ -5,11 +5,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 
+import com.gdx.bomberman.screens.ClientFx;
+import com.gdx.bomberman.screens.Lobby;
 import com.gdx.bomberman.sprites.Blast;
 import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
 import com.gdx.bomberman.screens.PlayScreen;
 import com.gdx.bomberman.sprites.Box;
+import javafx.stage.Stage;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -77,7 +80,8 @@ public class Bomberman extends Game {
 		blastC1 = new Sprite(new Texture("items/blastCenter1.png")); //pożniej to jakoś na animację zmnienimy
 
 		screen = new PlayScreen(this);
-		setScreen(screen);
+		Lobby lobby = new Lobby();
+		setScreen(lobby);
 
 		connectSocket();
 	}

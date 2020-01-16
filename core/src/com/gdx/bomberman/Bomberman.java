@@ -114,9 +114,14 @@ class ServerConnection extends Thread {
 
 	public void run() {
 		try {
-			out.writeUTF("connected");
+			synchronized (out){
+				out.writeUTF("connected");
+			}
 			while (true) {
-				String msg = in.readUTF();
+				String msg = "";
+				synchronized (in){
+					msg = in.readUTF();
+				}
 				if (msg.startsWith("update")) {
 					String id = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
@@ -168,7 +173,7 @@ class ServerConnection extends Thread {
 
 
 					//Blast blast = new Blast(bomberman.blastSprite, Float.parseFloat(x), Float.parseFloat(y), Integer.parseInt(power));
-					//w tablicy dopisać wybuchy
+					//w tablicy dopisać wybuchy, sprite powinien być centrun, vertibal lub horizontal, balsty powinny być worzone po kolei
 
 
 					//bomberman.blasts.put(number, blast); //power na razie z automatu 1

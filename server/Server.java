@@ -80,9 +80,14 @@ class Multi extends Thread {
 		System.out.println("Connected to " + player.socket.getPort() +".");
 		while (true) {
 			try {
-				String msg = player.in.readUTF();
+				String msg = "";
+				synchronized (player.in){
+					 msg = player.in.readUTF();
+				}
 				if (msg.startsWith("connected")) {
-					player.out.writeUTF("created " + player.id + " " + player.x + " " + player.y);
+					synchronized (player.out){
+						player.out.writeUTF("created " + player.id + " " + player.x + " " + player.y);
+					}
 				} else if (msg.startsWith("playerMoved")) {
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
@@ -107,10 +112,11 @@ class Multi extends Thread {
 					} else if(direction == 3) {//dól
 						if(map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
 					}
-
 					//player.y = Float.parseFloat(y);
 					for (Player other : Server.players) {
-						player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
+						synchronized (player.out){
+							player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
+						}
 					}
 				} else if (msg.startsWith("bomb")) {
 					Server.broadcast(msg + " " + Server.bombNumber++);
@@ -162,11 +168,13 @@ public class Server extends Thread{
 	}
 
 	public static void broadcast(String s) {
-		DataOutputStream out = null;
+		DataOutputStream out;
 		for(Player player: players) {
-			out = (DataOutputStream) player.out;
+			out = player.out;
 			try {
-				out.writeUTF(s);
+				synchronized (player.out){
+					out.writeUTF(s);
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 				//System.out.println("Failed to broadcast to client.");

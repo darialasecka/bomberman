@@ -16,7 +16,7 @@ import com.gdx.bomberman.sprites.Bomber;
 import java.util.HashMap;
 
 public class PlayScreen implements Screen {
-	private final float UPDATE_TIME = 1/60f;
+	private final float UPDATE_TIME = 1/30f;
 	float timer = 0;
 	TiledMap map;
 	OrthogonalTiledMapRenderer renderer;
@@ -62,8 +62,10 @@ public class PlayScreen implements Screen {
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionDown);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
 				try{
-					//bomb = new Bomb(bomberman.bombSprite, bomberman.x, bomberman.y, 0, Integer.parseInt(bomberman.id));
-					bomberman.out.writeUTF("bomb " +  bomberman.x + " " +  bomberman.y + " " + bomberman.BOMB_POWER + " " + System.currentTimeMillis() + " " + bomberman.id);
+					synchronized (bomberman.out){
+						//bomb = new Bomb(bomberman.bombSprite, bomberman.x, bomberman.y, 0, Integer.parseInt(bomberman.id));
+						bomberman.out.writeUTF("bomb " +  bomberman.x + " " +  bomberman.y + " " + bomberman.BOMB_POWER + " " + System.currentTimeMillis() + " " + bomberman.id);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -79,7 +81,9 @@ public class PlayScreen implements Screen {
 		timer += dt;
 		if(timer >= UPDATE_TIME && bomberman.player != null){
 			try{
-				bomberman.out.writeUTF("playerMoved " +  bomberman.x + " " +  bomberman.y + " " + bomberman.direction);
+				synchronized (bomberman.out){
+					bomberman.out.writeUTF("playerMoved " +  bomberman.x + " " +  bomberman.y + " " + bomberman.direction);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -90,7 +94,9 @@ public class PlayScreen implements Screen {
 		long currTime = System.currentTimeMillis();
 		if((currTime - bomb.start) / 1000 > bomb.EXPLOSION_TIME){
 			try{
-				bomberman.out.writeUTF("explosion " +  bomb.x + " " +  bomb.y + " " + bomb.power + " " + bomb.bombNumber);
+				synchronized (bomberman.out){
+					bomberman.out.writeUTF("explosion " +  bomb.x + " " +  bomb.y + " " + bomb.power + " " + bomb.bombNumber);
+				}
 				//bomberman.bombs.remove(bomb.bombNumber);
 			} catch (Exception e) {
 				e.printStackTrace();

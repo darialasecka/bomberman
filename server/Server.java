@@ -39,13 +39,8 @@ class Room {
 
 class Multi extends Thread {
 	private Player player;
-	final float wallDown = 34;
-	final float wallUp = 354;//?
-	final float wallLeft = 34;
-	final float wallRight = 495;//?
-	float blockSize = 32; //??
+	float blockSize = 32;
 	public ArrayList<ArrayList<String>> map = new ArrayList<ArrayList<String>>();
-
 
 	Multi(Player player) throws IOException {
 		this.player = player;
@@ -113,14 +108,14 @@ class Multi extends Thread {
 						if(map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
 					}
 
-
-
-
 					//player.y = Float.parseFloat(y);
 					for (Player other : Server.players) {
 						player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
 					}
+				} else if (msg.startsWith("bomb")) {
+					Server.broadcast(msg);
 				}
+
 			} catch (Exception e) {
 				Server.players.remove(player);
 				System.out.println("Player " + player.socket.getPort() + " disconnected.");

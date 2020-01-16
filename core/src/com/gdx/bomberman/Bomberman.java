@@ -9,6 +9,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Vector2;
 
+import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
 import com.gdx.bomberman.screens.PlayScreen;
 
@@ -16,6 +17,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Bomberman extends Game {
@@ -24,7 +26,7 @@ public class Bomberman extends Game {
 	float timer;
 	SpriteBatch batch;
 	Socket socket;
-	String id;
+	public String id;
 	public Bomber player;
 	TextureAtlas textureAtlas;
 	public TextureRegion textureRegionUp;
@@ -33,21 +35,24 @@ public class Bomberman extends Game {
 	public TextureRegion textureRegionRight;
 	public Sprite playerBomber;
 	public Sprite enemyBomber;
+	public Sprite bombSprite;
 	public HashMap<String, Bomber> otherPlayers;
 	public DataOutputStream out;
 	public DataInputStream in;
 	public float x;
 	public float y;
 	PlayScreen screen;
-	public TiledMap map;
 	public int direction; // 0-left, 1-right, 2-up, 3-down
+	public HashMap<String, Bomb> bombs;
+
+	public int MAX_BOMBS;
+	public int BOMB_POWER;
+
 
 
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-
-		map = new TmxMapLoader().load("map/map.tmx");
 
 		textureAtlas = new TextureAtlas(Gdx.files.internal("Spritesheet/Sprites.atlas"));
 		textureRegionUp = textureAtlas.findRegion("sprite002");
@@ -61,6 +66,9 @@ public class Bomberman extends Game {
 		playerBomber.setSize(playerBomber.getWidth() * scale, playerBomber.getHeight() * scale);
 		enemyBomber.setSize(enemyBomber.getWidth() * scale, enemyBomber.getHeight() * scale);
 		otherPlayers = new HashMap<>();
+		bombs = new HashMap<>();
+
+		bombSprite = new Sprite(new Texture("items/bomb.png"));
 
 		screen = new PlayScreen(this);
 		setScreen(screen);
@@ -118,21 +126,29 @@ class ServerConnection extends Thread {
 						bomberman.y = Float.parseFloat(y);
 					} else if (bomberman.id != null && !id.equals(bomberman.id)){
 						String playerId = id;
-						Bomber hero = new Bomber(bomberman.enemyBomber, (TiledMapTileLayer) bomberman.map.getLayers().get(0), 0);
-						bomberman.otherPlayers.put(playerId, hero);
+						Bomber enemy = new Bomber(bomberman.enemyBomber, 0);
+						bomberman.otherPlayers.put(playerId, enemy);
 						bomberman.otherPlayers.get(playerId).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					}
 				} else if (msg.startsWith("created")) {
 					bomberman.id = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
 					String y = msg.split(" ")[3];
-					bomberman.player = new Bomber(bomberman.playerBomber, (TiledMapTileLayer) bomberman.map.getLayers().get(0), 0);
+					bomberman.player = new Bomber(bomberman.playerBomber, 0);
 					bomberman.player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					bomberman.x = Float.parseFloat(x);
 					bomberman.y = Float.parseFloat(y);
 				} else if (msg.startsWith("remove")) {
 					String id = msg.split(" ")[1];
 					bomberman.otherPlayers.remove(id);
+				} else if (msg.startsWith("bomb")) {
+					String x = msg.split(" ")[1];
+					String y = msg.split(" ")[2];
+					String id = msg.split(" ")[3];
+					//zmienić id na bombnumber
+					bomberman.bombs.put(id, new Bomb(bomberman.bombSprite, Float.parseFloat(x), Float.parseFloat(y), 1, Integer.parseInt(id), 1)); //power na razie z automatu 1
+					bomberman.bombs.get(id).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+					//String power = msg.split(" ")[3];
 				}
 			}
 		} catch (java.io.EOFException e) {

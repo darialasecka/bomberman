@@ -10,8 +10,8 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.gdx.bomberman.Bomberman;
+import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
-import com.gdx.bomberman.sprites.Player;
 
 import java.util.HashMap;
 
@@ -23,8 +23,8 @@ public class PlayScreen implements Screen {
 	OrthographicCamera camera;
 	Bomberman bomberman;
 	SpriteBatch batch;
+	Bomb bomb;
 
-	Player player;
 
 	public PlayScreen(Bomberman bomberman){
 		batch = new SpriteBatch();
@@ -38,9 +38,6 @@ public class PlayScreen implements Screen {
 		renderer = new OrthogonalTiledMapRenderer(map, 1/2f);//1/1.98f
 		camera = new OrthographicCamera();
 		camera.position.set(275,210,0);
-		//camera.position.set(350,200,0);
-		//player =new Player(new Sprite(new Texture("inky.png")), (TiledMapTileLayer) map.getLayers().get(0));
-		//player.setPosition(40, 350);
 	}
 
 	public void handleInput(float dt){
@@ -50,22 +47,27 @@ public class PlayScreen implements Screen {
 			if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 				bomberman.x += (-speed* dt);
 				bomberman.direction = 0;
-				//bomberman.player.setPosition(bomberman.player.getX() + (-speed * dt), bomberman.player.getY());
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionLeft);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
 				bomberman.direction = 1;
 				bomberman.x += (speed * dt);
-				//bomberman.player.setPosition(bomberman.player.getX() + (+speed * dt), bomberman.player.getY());
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionRight);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
 				bomberman.y += (speed * dt);
-				//bomberman.player.setPosition(bomberman.player.getX(), bomberman.player.getY() + (+speed * dt));
 				bomberman.direction = 2;
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionUp);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.DOWN)){
 				bomberman.y += (-speed * dt);
-				//bomberman.player.setPosition(bomberman.player.getX(), bomberman.player.getY()+ (-speed * dt));
 				bomberman.direction = 3;
+				//bomberman.playerBomber.setRegion(bomberman.textureRegionDown);
+			} else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
+				try{
+					System.out.println("bomb " +  bomberman.x + " " +  bomberman.y + " " + bomberman.id);
+					//bomb = new Bomb(bomberman.bombSprite, bomberman.x, bomberman.y, 0, Integer.parseInt(bomberman.id));
+					bomberman.out.writeUTF("bomb " +  bomberman.x + " " +  bomberman.y + " " + bomberman.id);//+ " " + bomberman.power
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				//bomberman.playerBomber.setRegion(bomberman.textureRegionDown);
 			}
 			//batch.draw(bomberman.textureRegionDown, 0, 0);
@@ -102,6 +104,12 @@ public class PlayScreen implements Screen {
 			//bomberman.player.update(Gdx.graphics.getDeltaTime());
 		}
 		for(HashMap.Entry<String, Bomber> entry: bomberman.otherPlayers.entrySet()){
+			entry.getValue().draw(batch);
+		}
+		if(bomb != null){
+			bomb.draw(batch);
+		}
+		for(HashMap.Entry<String, Bomb> entry: bomberman.bombs.entrySet()){
 			entry.getValue().draw(batch);
 		}
 		batch.end();

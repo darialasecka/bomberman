@@ -4,10 +4,6 @@ import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.math.Vector2;
 
 import com.gdx.bomberman.sprites.Blast;
 import com.gdx.bomberman.sprites.Bomb;
@@ -18,13 +14,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Bomberman extends Game {
 	public final int port = 8080;
-	private final float UPDATE_TIME = 1/60f;
-	float timer;
 	SpriteBatch batch;
 	Socket socket;
 	public String id;
@@ -37,7 +30,7 @@ public class Bomberman extends Game {
 	public Sprite playerBomber;
 	public Sprite enemyBomber;
 	public Sprite bombSprite;
-	public Sprite blastSprite;
+	public Sprite blastC1;
 	public HashMap<String, Bomber> otherPlayers;
 	public DataOutputStream out;
 	public DataInputStream in;
@@ -71,7 +64,7 @@ public class Bomberman extends Game {
 		bombs = new HashMap<>();
 
 		bombSprite = new Sprite(new Texture("items/bomb.png"));
-		blastSprite = new Sprite(new Texture("items/blastCenter1.png")); //pożniej to jakoś na animację zmnienimy
+		blastC1 = new Sprite(new Texture("items/blastCenter1.png")); //pożniej to jakoś na animację zmnienimy
 
 		screen = new PlayScreen(this);
 		setScreen(screen);
@@ -173,7 +166,7 @@ class ServerConnection extends Thread {
 					bomberman.bombs.remove(number);
 
 
-					//Blast blast = new Blast(bomberman.blastSprite, Float.parseFloat(x), Float.parseFloat(y), Integer.parseInt(power));
+					//Blast blast = new Blast(bomberman.blastC1, Float.parseFloat(x), Float.parseFloat(y), Integer.parseInt(power));
 					//w tablicy dopisać wybuchy, sprite powinien być centrun, vertibal lub horizontal, balsty powinny być worzone po kolei
 
 

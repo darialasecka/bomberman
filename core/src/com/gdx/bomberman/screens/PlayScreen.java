@@ -39,7 +39,7 @@ public class PlayScreen implements Screen {
 		map = new TmxMapLoader().load("maps/map3c.tmx");
 		renderer = new OrthogonalTiledMapRenderer(map, 1/2f);//1/1.98f
 		camera = new OrthographicCamera();
-		camera.position.set(275,210,0);
+		camera.position.set(272,210,0); //275,210
 	}
 
 	public void handleInput(float dt){
@@ -62,7 +62,8 @@ public class PlayScreen implements Screen {
 				bomberman.y += (-speed * dt);
 				bomberman.direction = 3;
 				bomberman.player.setRegion(bomberman.textureRegionDown);
-			} else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
+			}
+			if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){ // w bombermanie można stawiac bomby podczas chodzenia
 				if(bomberman.currBombCounter < bomberman.MAX_BOMBS){
 					try{
 						synchronized (bomberman.out){

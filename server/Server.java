@@ -45,7 +45,7 @@ class Multi extends Thread {
 	Multi(Player player) throws IOException {
 		this.player = player;
 
-
+		//making map to check collision
 		ArrayList walls = new ArrayList<String>();
 		for(int i=0; i<17; i++)
 			walls.add("1");
@@ -132,8 +132,6 @@ class Multi extends Thread {
 			}
 		}
 	}
-
-
 
 }
 

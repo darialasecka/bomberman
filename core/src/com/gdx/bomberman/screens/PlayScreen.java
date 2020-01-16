@@ -5,6 +5,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
@@ -47,19 +49,19 @@ public class PlayScreen implements Screen {
 			if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
 				bomberman.x += (-speed* dt);
 				bomberman.direction = 0;
-				//bomberman.playerBomber.setRegion(bomberman.textureRegionLeft);
+				bomberman.player.setRegion(bomberman.textureRegionLeft);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
 				bomberman.direction = 1;
 				bomberman.x += (speed * dt);
-				//bomberman.playerBomber.setRegion(bomberman.textureRegionRight);
+				bomberman.player.setRegion(bomberman.textureRegionRight);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
 				bomberman.y += (speed * dt);
 				bomberman.direction = 2;
-				//bomberman.playerBomber.setRegion(bomberman.textureRegionUp);
+				bomberman.player.setRegion(bomberman.textureRegionUp);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.DOWN)){
 				bomberman.y += (-speed * dt);
 				bomberman.direction = 3;
-				//bomberman.playerBomber.setRegion(bomberman.textureRegionDown);
+				bomberman.player.setRegion(bomberman.textureRegionDown);
 			} else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
 				try{
 					synchronized (bomberman.out){

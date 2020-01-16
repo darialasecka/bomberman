@@ -30,7 +30,7 @@ class Room {
 	public boolean is_full;
 	public int curr_number_of_players = 0;
 	public final int MAX_CAPACITY = 4;
-	public final int MIN_REQUIRED_CAPACITY = 2;
+	public final int MIN_CAPACITY_REQUIRED = 2;
 
 	public Room(int number) throws IOException {
 		this.number = number;
@@ -39,16 +39,14 @@ class Room {
 	}
 
 	public void broadcast(String msg) {
-		DataOutputStream out;
 		for(Player player: players_in_room) {
-			out = player.out;
 			try {
 				synchronized (player.out){
-					out.writeUTF(msg);
+					player.out.writeUTF(msg);
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
-				//System.out.println("Failed to broadcast to client.");
+				//e.printStackTrace();
+				System.out.println("Failed to broadcast to client.");
 				players_in_room.remove(player);
 			}
 		}
@@ -324,10 +322,11 @@ class Multi extends Thread {
 				}
 
 			} catch (Exception e) {
+				Room room = Server.rooms.get(player.room);
+				room.players_in_room.remove(player);
+				room.broadcast("remove " + player.id);
 				Server.players.remove(player);
 				System.out.println("Player " + player.socket.getPort() + " disconnected.");
-				Room room = Server.rooms.get(player.room);
-				room.broadcast("remove " + player.id);
 				break;
 			}
 		}
@@ -361,6 +360,10 @@ public class Server extends Thread{
 				while(!room.active_game || !room.is_full){
 					try {
 						Socket socket = serverSocket.accept();
+						//40,40 - left down corner
+						//40,360 - left up corner
+						//490,40 - right down corner
+						//490,360 - right up corner
 						//na razie niech wszyscy się tworzą na 40,40, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length w danym pokoju
 						Player player = new Player(40,40, Integer.toString(id), socket, roomNumber);
 						room.players_in_room.add(player);
@@ -386,7 +389,7 @@ public class Server extends Thread{
 
 	}
 	//sends message to all players in room
-	public static void broadcast(String msg) {
+	/*public static void broadcast(String msg) {
 		DataOutputStream out;
 		for(Player player: players) {
 			out = player.out;
@@ -400,5 +403,5 @@ public class Server extends Thread{
 				players.remove(player);
 			}
 		}
-	}
+	}*/
 }

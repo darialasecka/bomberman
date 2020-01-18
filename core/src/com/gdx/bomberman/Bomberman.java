@@ -37,6 +37,8 @@ public class Bomberman extends Game {
 	public Sprite bombSprite;
 	public Sprite boxSprite;
 	public Sprite blastC1;
+	public Sprite blastH1;
+	public Sprite blastV1;
 	public HashMap<String, Bomber> otherPlayers;
 	public DataOutputStream out;
 	public DataInputStream in;
@@ -51,6 +53,7 @@ public class Bomberman extends Game {
 
 
 	public HashMap<String, Box> boxes;
+	public HashMap<String, Blast> blasts;
 
 
 
@@ -73,11 +76,19 @@ public class Bomberman extends Game {
 		otherPlayers = new HashMap<>();
 		bombs = new HashMap<>();
 		boxes = new HashMap<>();
+		blasts = new HashMap<>();
 
 		bombSprite = new Sprite(new Texture("items/bomb.png"));
 		boxSprite = new Sprite(new Texture("items/box.png"));
 		boxSprite.setSize(boxSprite.getWidth() * 0.5f, boxSprite.getHeight() * 0.5f);
+
 		blastC1 = new Sprite(new Texture("items/blastCenter1.png")); //pożniej to jakoś na animację zmnienimy
+		blastH1 = new Sprite(new Texture("items/blastHorizontal1.png")); //pożniej to jakoś na animację zmnienimy
+		blastV1 = new Sprite(new Texture("items/blastVertical1.png")); //pożniej to jakoś na animację zmnienimy
+		float blastScale = 2.25f;
+		blastC1.setSize(blastC1.getWidth() * blastScale, blastC1.getHeight() * blastScale);
+		blastH1.setSize(blastH1.getWidth() * blastScale, blastH1.getHeight() * blastScale);
+		blastV1.setSize(blastV1.getWidth() * blastScale, blastV1.getHeight() * blastScale);
 
 		screen = new PlayScreen(this);
 		Lobby lobby = new Lobby();
@@ -161,9 +172,7 @@ class ServerConnection extends Thread {
 					bomberman.boxes.put(number, box);
 					bomberman.boxes.get(number).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 
-				}
-
-				else if (msg.startsWith("remove")) {
+				} else if (msg.startsWith("remove")) {
 					String id = msg.split(" ")[1];
 					bomberman.otherPlayers.remove(id);
 				} else if (msg.startsWith("bomb")) {
@@ -178,23 +187,31 @@ class ServerConnection extends Thread {
 					bomberman.bombs.get(number).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					//String power = msg.split(" ")[3];
 				} else if(msg.startsWith("explosion")) {
-					System.out.println("Wybuch!!!");
 
-					String x = msg.split(" ")[1];
-					String y = msg.split(" ")[2];
-					String power = msg.split(" ")[3];
-					String number = msg.split(" ")[4];
+					String number = msg.split(" ")[1];
 					if(bomberman.bombs.get(number).bomberId == Integer.parseInt(bomberman.id)) bomberman.currBombCounter--;
 					bomberman.bombs.remove(number);
 
+				} else if(msg.startsWith("blast")) {
+					//System.out.println("Wybuch!!!");
+					String number = msg.split(" ")[1];
+					String x = msg.split(" ")[2];
+					String y = msg.split(" ")[3];
+					String type = msg.split(" ")[4];
+					String start = msg.split(" ")[5];
+					float fx = Float.parseFloat(x);
+					float fy = Float.parseFloat(y);
+					Blast blast;
+					System.out.println(msg);
+					System.out.println(type);
+					if(type.equals("h")) blast = new Blast(bomberman.blastH1, fx, fy, Long.parseLong(start));
+					else if(type.equals("v")) blast = new Blast(bomberman.blastV1, fx, fy, Long.parseLong(start));
+					else blast = new Blast(bomberman.blastC1, fx, fy, Long.parseLong(start));
+					bomberman.blasts.put(number, blast);
+					bomberman.blasts.get(number).setPosition(fx, fy);
 
-					//Blast blast = new Blast(bomberman.blastC1, Float.parseFloat(x), Float.parseFloat(y), Integer.parseInt(power));
-					//w tablicy dopisać wybuchy, sprite powinien być centrun, vertibal lub horizontal, balsty powinny być worzone po kolei
-
-
-					//bomberman.blasts.put(number, blast); //power na razie z automatu 1
-					//bomberman.blasts.get(number).setPosition(Float.parseFloat(x), Float.parseFloat(y));
-					//String power = msg.split(" ")[3];
+				} else if (msg.startsWith("clearBoxes")){//właściwie to equals by starczyło ale olać xd
+					bomberman.boxes.clear();
 				}
 			}
 		} catch (Exception e) {

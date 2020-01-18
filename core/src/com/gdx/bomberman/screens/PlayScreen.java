@@ -12,6 +12,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.gdx.bomberman.Bomberman;
+import com.gdx.bomberman.sprites.Blast;
 import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
 import com.gdx.bomberman.sprites.Box;
@@ -98,7 +99,7 @@ public class PlayScreen implements Screen {
 		if((currTime - bomb.start) / 1000 > bomb.EXPLOSION_TIME){
 			try{
 				synchronized (bomberman.out){
-					bomberman.out.writeUTF("explosion " +  bomb.x + " " +  bomb.y + " " + bomb.power + " " + bomb.bombNumber);
+					bomberman.out.writeUTF("explosion " +  bomb.x + " " +  bomb.y + " " + bomb.power + " " + bomb.bombNumber + " " + System.currentTimeMillis());
 				}
 				//bomberman.bombs.remove(bomb.bombNumber);
 			} catch (Exception e) {
@@ -127,16 +128,21 @@ public class PlayScreen implements Screen {
 			}
 		} catch(Exception e) {}
 
+		try{
+			for(HashMap.Entry<String, Blast> entry: bomberman.blasts.entrySet()){
+				entry.getValue().draw(batch);
+			}
+		} catch(Exception e) {}
+
 		if(bomberman.player != null){
 			bomberman.player.draw(batch);
 			//bomberman.player.update(Gdx.graphics.getDeltaTime());
 		}
+
 		for(HashMap.Entry<String, Bomber> entry: bomberman.otherPlayers.entrySet()){
 			entry.getValue().draw(batch);
 		}
-		if(bomb != null){
-			bomb.draw(batch);
-		}
+
 		try{
 			for(HashMap.Entry<String, Bomb> entry: bomberman.bombs.entrySet()){
 				updateExplosion(entry.getValue());

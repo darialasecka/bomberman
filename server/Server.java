@@ -47,6 +47,7 @@ class Room {
 			} catch (IOException e) {
 				//e.printStackTrace();
 				System.out.println("Failed to broadcast to client.");
+				curr_number_of_players--;
 				players_in_room.remove(player);
 			}
 		}
@@ -278,7 +279,7 @@ class Multi extends Thread {
 		}
 	}
 
-	public void sendBlastPositions(DataOutputStream out) throws IOException {
+	public void sendBlastPositions(DataOutputStream out, String start) throws IOException {
 		for(int i = 1; i < map.size()-1; i++){
 			for(int j = 1; j < walls.size()-1; j++){ //którakolwiek
 				if (map.get(i).get(j).startsWith("3")){
@@ -286,11 +287,11 @@ class Multi extends Thread {
 					float blastY = ((map.size() - 1.15f) * blockSize) - (i * blockSize);//chyba tak xd
 					String type = "";
 					String position = map.get(i).get(j);
-					if (position.endsWith("0") ||position.endsWith("1")) type = "h";
-					else if (position.endsWith("2") ||position.endsWith("3")) type = "v";
-					else if (position.length() == 1) type = "c";
+					if (position.length() == 1) type = "c";
+					else if (position.endsWith("0") || position.endsWith("1")) type = "h";
+					else if (position.endsWith("2") || position.endsWith("3")) type = "v";
 					synchronized (out) {
-						out.writeUTF("blast " + Server.blastNumber++ + " " + blastX + " " + blastY + " " + type);
+						out.writeUTF("blast " + Server.blastNumber++ + " " + blastX + " " + blastY + " " + type + " " + start);
 					}
 				}
 			}
@@ -346,13 +347,13 @@ class Multi extends Thread {
 					room.broadcast(msg + " " + Server.bombNumber++);
 				} else if (msg.startsWith("explosion")) {
 					Room room = Server.rooms.get(player.room);
-					room.broadcast(msg);
+					room.broadcast("explosion " + msg.split(" ")[4]);
 
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
-					//String power = msg.split(" ")[3];
+					String power = msg.split(" ")[3];
 
-					String power = "4";//do tesów
+					//String power = "4";//do tesów
 
 					// tu ogarniamy pozycje bomby i liczymy gdzie powinien być wybuch
 					int posX = (int)(Float.parseFloat(x) / blockSize);
@@ -364,34 +365,34 @@ class Multi extends Thread {
 					map.get(posY).set(posX,"3");
 
 					//w lewo
-					while((map.get(posY).get(posX-count-1) == "0" || map.get(posY).get(posX-count-1).startsWith("3")) && count != Integer.parseInt(power)){
+					while((map.get(posY).get(posX-count-1) == "0" || map.get(posY).get(posX-count-1).startsWith("3") || map.get(posY).get(posX-count-1) == "2") && count != Integer.parseInt(power)){
 						map.get(posY).set(posX-count-1, "30"); //lewo oznacza inaczej
 						count++;
 					}
 					//gora
 					count = 0;
-					while((map.get(posY-count-1).get(posX) == "0" || map.get(posY-count-1).get(posX).startsWith("3")) && count != Integer.parseInt(power)){
+					while((map.get(posY-count-1).get(posX) == "0" || map.get(posY-count-1).get(posX).startsWith("3") || map.get(posY-count-1).get(posX) == "2") && count != Integer.parseInt(power)){
 						map.get(posY-count-1).set(posX, "32");
 						count++;
 					}
 					//prawo
 					count = 0;
-					while((map.get(posY).get(posX+count+1) == "0" || map.get(posY).get(posX+count+1).startsWith("3")) && count != Integer.parseInt(power)){
-
+					while((map.get(posY).get(posX+count+1) == "0" || map.get(posY).get(posX+count+1).startsWith("3") || map.get(posY).get(posX+count+1) == "2") && count != Integer.parseInt(power)){
 						map.get(posY).set(posX+count+1, "31");
 						count++;
 					}
 					//dol
 					count = 0;
-					while((map.get(posY+count+1).get(posX) == "0" || map.get(posY+count+1).get(posX).startsWith("3")) && count != Integer.parseInt(power)){
+					while((map.get(posY+count+1).get(posX) == "0" || map.get(posY+count+1).get(posX).startsWith("3") || map.get(posY+count+1).get(posX) == "2") && count != Integer.parseInt(power)){
 						map.get(posY+count+1).set(posX, "33");
 						count++;
 					}
 					//wybuchy dobrze oznacza
-					printMap();
+					//printMap();
 
-					sendBlastPositions(player.out);
-
+					sendBlastPositions(player.out, msg.split(" ")[5]);
+					room.broadcast("clearBoxes");
+					sendBoxesPositions(player.out);
 				}
 
 			} catch (Exception e) {

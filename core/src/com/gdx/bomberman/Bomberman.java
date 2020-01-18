@@ -81,7 +81,7 @@ public class Bomberman extends Game {
 
 		screen = new PlayScreen(this);
 		Lobby lobby = new Lobby();
-		setScreen(lobby);
+		setScreen(screen);
 
 		connectSocket();
 	}
@@ -179,7 +179,6 @@ class ServerConnection extends Thread {
 					//String power = msg.split(" ")[3];
 				} else if(msg.startsWith("explosion")) {
 					System.out.println("Wybuch!!!");
-
 
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];

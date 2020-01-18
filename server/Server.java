@@ -79,9 +79,12 @@ class Multi extends Thread {
 		setMap();
 		setBoxes();
 
-		/*for(int i=0; i<map.size(); i++){
+	}
+
+	public void printMap(){
+		for(int i=0; i<map.size(); i++){
 			System.out.println(map.get(i));
-		}*/
+		}
 	}
 
 	public void setMap(){
@@ -261,6 +264,39 @@ class Multi extends Thread {
 		map.get(11).set(12, box);
 	}
 
+	public void sendBoxesPositions(DataOutputStream out) throws IOException {
+		for(int i = 1; i < map.size()-1; i++){
+			for(int j = 1; j < walls.size()-1; j++){ //którakolwiek
+				if (map.get(i).get(j) == "2"){
+					float boxX = (j * blockSize) - 0.5f;
+					float boxY = ((map.size() - 1.15f) * blockSize) - (i * blockSize);//chyba tak xd
+					synchronized (out) {
+						out.writeUTF("box " + Server.boxNumber++ + " " + boxX + " " + boxY);
+					}
+				}
+			}
+		}
+	}
+
+	public void sendBlastPositions(DataOutputStream out) throws IOException {
+		for(int i = 1; i < map.size()-1; i++){
+			for(int j = 1; j < walls.size()-1; j++){ //którakolwiek
+				if (map.get(i).get(j).startsWith("3")){
+					float blastX = (j * blockSize) - 0.5f;
+					float blastY = ((map.size() - 1.15f) * blockSize) - (i * blockSize);//chyba tak xd
+					String type = "";
+					String position = map.get(i).get(j);
+					if (position.endsWith("0") ||position.endsWith("1")) type = "h";
+					else if (position.endsWith("2") ||position.endsWith("3")) type = "v";
+					else if (position.length() == 1) type = "c";
+					synchronized (out) {
+						out.writeUTF("blast " + Server.blastNumber++ + " " + blastX + " " + blastY + " " + type);
+					}
+				}
+			}
+		}
+	}
+
 	public void run()  {
 		System.out.println("New player " + player.socket.getPort() + " connected.");
 		while (true) {
@@ -272,15 +308,7 @@ class Multi extends Thread {
 				if (msg.startsWith("connected")) {
 					synchronized (player.out){
 						player.out.writeUTF("created " + player.id + " " + player.x + " " + player.y);
-						for(int i = 1; i < map.size()-1; i++){
-							for(int j = 1; j < walls.size()-1; j++){ //którakolwiek
-								if (map.get(i).get(j) == "2"){
-									float boxX = (j * blockSize) - 0.5f;
-									float boxY = ((map.size() - 1.15f) * blockSize) - (i * blockSize);//chyba tak xd
-									player.out.writeUTF("box " + Server.boxNumber++ + " " + boxX + " " + boxY);
-								}
-							}
-						}
+						sendBoxesPositions(player.out);
 					}
 				} else if (msg.startsWith("playerMoved")) {
 					String x = msg.split(" ")[1];
@@ -293,18 +321,18 @@ class Multi extends Thread {
 
 					if(direction == 0){//lewo
 						//System.out.println(posX + " " + map.get(posY).get(posX));
-						if(map.get(posY).get(posX) == "0") player.x = Float.parseFloat(x);
+						if(map.get(posY).get(posX) == "0" || map.get(posY).get(posX).startsWith("3")) player.x = Float.parseFloat(x);
 							/*System.out.println("Tak");
 						else System.out.println("Nie");*/
 					} else if(direction == 1) {//prawo
 						posX = (int)(((player.x) / blockSize) - 0.5);
-						if(map.get(posY).get(posX+1) == "0") player.x = Float.parseFloat(x);
+						if(map.get(posY).get(posX+1) == "0" || map.get(posY).get(posX+1).startsWith("3")) player.x = Float.parseFloat(x);
 					} else if(direction == 2){//góra
 						posY = (int)((player.y / blockSize) - 0.75);
 						posY = map.size()-posY-2;
-						if(map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
+						if(map.get(posY).get(posX) == "0" || map.get(posY).get(posX).startsWith("3")) player.y = Float.parseFloat(y);
 					} else if(direction == 3) {//dól
-						if(map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
+						if(map.get(posY).get(posX) == "0" || map.get(posY).get(posX).startsWith("3")) player.y = Float.parseFloat(y);
 					}
 					//player.y = Float.parseFloat(y);
 					Room room = Server.rooms.get(player.room);
@@ -319,6 +347,51 @@ class Multi extends Thread {
 				} else if (msg.startsWith("explosion")) {
 					Room room = Server.rooms.get(player.room);
 					room.broadcast(msg);
+
+					String x = msg.split(" ")[1];
+					String y = msg.split(" ")[2];
+					//String power = msg.split(" ")[3];
+
+					String power = "4";//do tesów
+
+					// tu ogarniamy pozycje bomby i liczymy gdzie powinien być wybuch
+					int posX = (int)(Float.parseFloat(x) / blockSize);
+					int posY = (int)(Float.parseFloat(y) / blockSize);
+					posY = map.size()-posY - 1;
+
+					int count = 0;
+					//środek
+					map.get(posY).set(posX,"3");
+
+					//w lewo
+					while((map.get(posY).get(posX-count-1) == "0" || map.get(posY).get(posX-count-1).startsWith("3")) && count != Integer.parseInt(power)){
+						map.get(posY).set(posX-count-1, "30"); //lewo oznacza inaczej
+						count++;
+					}
+					//gora
+					count = 0;
+					while((map.get(posY-count-1).get(posX) == "0" || map.get(posY-count-1).get(posX).startsWith("3")) && count != Integer.parseInt(power)){
+						map.get(posY-count-1).set(posX, "32");
+						count++;
+					}
+					//prawo
+					count = 0;
+					while((map.get(posY).get(posX+count+1) == "0" || map.get(posY).get(posX+count+1).startsWith("3")) && count != Integer.parseInt(power)){
+
+						map.get(posY).set(posX+count+1, "31");
+						count++;
+					}
+					//dol
+					count = 0;
+					while((map.get(posY+count+1).get(posX) == "0" || map.get(posY+count+1).get(posX).startsWith("3")) && count != Integer.parseInt(power)){
+						map.get(posY+count+1).set(posX, "33");
+						count++;
+					}
+					//wybuchy dobrze oznacza
+					printMap();
+
+					sendBlastPositions(player.out);
+
 				}
 
 			} catch (Exception e) {
@@ -343,6 +416,7 @@ public class Server extends Thread{
 	public static int roomNumber = 0;
 	public static int bombNumber = 0;
 	public static int boxNumber = 0;
+	public static int blastNumber = 0;
 
 	public static void main(String args[]) {
 		try {

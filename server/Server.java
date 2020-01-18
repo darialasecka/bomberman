@@ -376,19 +376,68 @@ class Multi extends Thread {
 					//System.out.println(posX + " " + posY);
 
 					if(direction == 0){//lewo
-						//System.out.println(posX + " " + map.get(posY).get(posX));
-						if(room.map.get(posY).get(posX) == "0" || room.map.get(posY).get(posX).startsWith("3")) player.x = Float.parseFloat(x);
-							/*System.out.println("Tak");
-						else System.out.println("Nie");*/
+						if(room.map.get(posY).get(posX) == "0") player.x = Float.parseFloat(x);
+						else if(room.map.get(posY).get(posX).startsWith("3")){
+							player.x = Float.parseFloat(x);
+							posX = (int)(((player.x) / room.blockSize) + 0.25);
+							if(room.map.get(posY).get(posX).startsWith("3")){
+								room.broadcast("DEAD " + player.id);
+								room.players_in_room.remove(player);
+								room.curr_number_of_players--;
+								if(room.curr_number_of_players == 1){
+									room.broadcast("Winner");
+								}
+							}
+						}
+
+
 					} else if(direction == 1) {//prawo
 						posX = (int)(((player.x) / room.blockSize) - 0.5);
-						if(room.map.get(posY).get(posX+1) == "0" || room.map.get(posY).get(posX+1).startsWith("3")) player.x = Float.parseFloat(x);
+						if(room.map.get(posY).get(posX+1) == "0") player.x = Float.parseFloat(x);
+						else if (room.map.get(posY).get(posX+1).startsWith("3")){
+							player.x = Float.parseFloat(x);
+							posX = (int)(((player.x) / room.blockSize) + 0.25);
+							if(room.map.get(posY).get(posX).startsWith("3")){
+								room.broadcast("DEAD " + player.id);
+								room.players_in_room.remove(player);
+								room.curr_number_of_players--;
+								if(room.curr_number_of_players == 1){
+									room.broadcast("Winner");
+								}
+							}
+						}
 					} else if(direction == 2){//góra
 						posY = (int)((player.y / room.blockSize) - 0.75);
 						posY = room.map.size()-posY-2;
-						if(room.map.get(posY).get(posX) == "0" || room.map.get(posY).get(posX).startsWith("3")) player.y = Float.parseFloat(y);
+						if(room.map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
+						else if (room.map.get(posY).get(posX).startsWith("3")){
+							player.y = Float.parseFloat(y);
+							posY = (int)((player.y / room.blockSize) - 0.25);
+							posY = room.map.size()-posY-2;
+							if(room.map.get(posY).get(posX).startsWith("3")){
+								room.broadcast("DEAD " + player.id);
+								room.players_in_room.remove(player);
+								room.curr_number_of_players--;
+								if(room.curr_number_of_players == 1){
+									room.broadcast("Winner");
+								}
+							}
+						}
 					} else if(direction == 3) {//dól
-						if(room.map.get(posY).get(posX) == "0" || room.map.get(posY).get(posX).startsWith("3")) player.y = Float.parseFloat(y);
+						if(room.map.get(posY).get(posX) == "0") player.y = Float.parseFloat(y);
+						else if (room.map.get(posY).get(posX).startsWith("3")){
+							player.y = Float.parseFloat(y);
+							posY = (int)((player.y / room.blockSize) + 0.25);
+							posY = room.map.size()-posY - 1;
+							if(room.map.get(posY).get(posX).startsWith("3")){
+								room.broadcast("DEAD " + player.id);
+								room.players_in_room.remove(player);
+								room.curr_number_of_players--;
+								if(room.curr_number_of_players == 1){
+									room.broadcast("Winner");
+								}
+							}
+						}
 					}
 					//player.y = Float.parseFloat(y);
 					for (Player other : room.players_in_room) {

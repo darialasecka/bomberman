@@ -128,10 +128,14 @@ public class PlayScreen implements Screen {
 		}
 	}
 
-	public void checkIsDead(){
+	public void checkIsDeadOrWin(){
 		if(bomberman.is_dead){
 			GameOver gameOver = new GameOver(game);
 			game.setScreen(gameOver);
+		}
+		if(bomberman.win){
+			Win win = new Win(game);
+			game.setScreen(win);
 		}
 	}
 
@@ -140,7 +144,7 @@ public class PlayScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		checkIsDead();
+		checkIsDeadOrWin();
 
 		handleInput(Gdx.graphics.getDeltaTime());
 		updateServer(Gdx.graphics.getDeltaTime());

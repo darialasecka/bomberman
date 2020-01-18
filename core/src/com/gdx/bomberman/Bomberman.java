@@ -63,8 +63,9 @@ public class Bomberman extends Game {
 	public List<String> chat = new ArrayList<>();
 	public boolean start = false;
 
-	//to dead xd
+	//to dead / win xd
 	public boolean is_dead = false;
+	public boolean win = false;
 
 
 
@@ -105,8 +106,7 @@ public class Bomberman extends Game {
 
 		screen = new PlayScreen(this, game);
 		lobby = new Lobby(this, game);
-		GameOver over = new GameOver(game);
-		setScreen(lobby);
+		setScreen(lobby); //lobby
 
 		connectSocket();
 	}
@@ -168,7 +168,9 @@ class ServerConnection extends Thread {
 						String playerId = id;
 						/*Bomber enemy = new Bomber(bomberman.enemyBomber, 0, Boolean.parseBoolean(ready));
 						bomberman.otherPlayers.put(playerId, enemy);*/
-						bomberman.otherPlayers.get(playerId).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+						try{
+							bomberman.otherPlayers.get(playerId).setPosition(Float.parseFloat(x), Float.parseFloat(y));
+						} catch (Exception e) {}
 					}
 
 				} else if(msg.startsWith("players")){
@@ -222,8 +224,10 @@ class ServerConnection extends Thread {
 				} else if(msg.startsWith("explosion")) {
 					//System.out.println("Wybuch!!!");
 					String number = msg.split(" ")[1];
-					if(bomberman.bombs.get(number).bomberId == Integer.parseInt(bomberman.id)) bomberman.currBombCounter--;
-					bomberman.bombs.remove(number);
+					try{
+						if(bomberman.bombs.get(number).bomberId == Integer.parseInt(bomberman.id)) bomberman.currBombCounter--;
+						bomberman.bombs.remove(number);
+					} catch (Exception e) {}
 
 				} else if(msg.startsWith("blast")) {
 					String number = msg.split(" ")[1];
@@ -269,8 +273,19 @@ class ServerConnection extends Thread {
 				} else if(msg.startsWith("start")){
 					//System.out.println("START");
 					bomberman.start = true;
-				}
 
+				} else if(msg.startsWith("DEAD")){
+					String id = msg.split(" ")[1];
+					//System.out.println("umarlem");
+					if(bomberman.id.equals(id)){
+						bomberman.is_dead = true;
+					} else{
+						bomberman.otherPlayers.remove(id);
+					}
+
+				} else if(msg.startsWith("Winner")) {
+					bomberman.win = true;
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

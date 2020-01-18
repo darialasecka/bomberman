@@ -2,11 +2,13 @@ package com.gdx.bomberman.screens;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -16,6 +18,7 @@ import com.badlogic.gdx.utils.Array;
 import com.gdx.bomberman.Bomberman;
 import com.gdx.bomberman.sprites.Bomber;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 public class Lobby implements Screen {
@@ -41,7 +44,8 @@ public class Lobby implements Screen {
 		Table root = new Table();
 		root.setFillParent(true);
 
-		Table gameInfoTable = buildGameInfoTable();
+		Table playerInfoTable = buildPlayerInfoTable();
+		Table chatTable = buildChatTable();
 
 
 		final TextButton readyButton = new TextButton("Gotowy?", skin, "default");
@@ -62,7 +66,9 @@ public class Lobby implements Screen {
 		roomLabel = new Label("Pokoj ", skin, "default");
 		root.add(roomLabel).colspan(3);
 		root.row();
-		root.add(gameInfoTable);
+		root.add(playerInfoTable);
+		root.add(chatTable);
+		root.row();
 		root.row();
 		root.add(readyButton);
 
@@ -98,7 +104,17 @@ public class Lobby implements Screen {
 			String roomText= "Pokoj " + room;
 			roomLabel.setText(roomText);
 		} catch (Exception e) {}
+
+		try{
+			String fullChat = "";
+			for(String message: bomberman.chat){
+				fullChat += message + "\n";
+			}
+			chatLabel.setText(fullChat);
+			//chatLabel.setText(chatLabel.getText() + "<"+pc.name+"> : " + msg);
+		} catch (Exception e) {}
 		stage.draw();
+		stage.act();
 		batch.end();
 	}
 
@@ -119,7 +135,7 @@ public class Lobby implements Screen {
 
 	}
 
-	private Table buildGameInfoTable(){
+	private Table buildPlayerInfoTable(){
 		Table table = new Table();
 		players_list = new List<String>(skin, "default");
 
@@ -159,6 +175,52 @@ public class Lobby implements Screen {
 		}
 
 		players_list.setItems(temp);
+	}
+
+	private Label chatLabel;
+	private ScrollPane chat_scroll;
+	private TextField message_field;
+
+
+	private Table buildChatTable(){
+		Table table = new Table();
+
+		chatLabel = new Label("", skin);
+		chatLabel.setWrap(true);
+		chatLabel.setAlignment(Align.topLeft);
+
+		chat_scroll = new ScrollPane(chatLabel, skin);
+		chat_scroll.setFadeScrollBars(false);
+		//chat_scroll.pack();
+
+		message_field = new TextField("", skin);
+		message_field.setMessageText("Wiadomosc");
+		message_field.setColor(0.2f, 0.4f, 0.3f, 1f);
+		message_field.getStyle().fontColor = Color.WHITE;
+
+		message_field.addListener(new InputListener(){
+			@Override
+			public boolean keyUp(InputEvent event, int keycode) {
+				if(keycode == Input.Keys.ENTER && !message_field.getText().isEmpty()){
+					try {
+						synchronized (bomberman.out) {
+							bomberman.out.writeUTF("chat " + bomberman.id + " " + message_field.getText());
+						}
+						message_field.setText("");
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+
+				return true;
+			}
+		});
+
+		table.add(chat_scroll).width(220).height(220);
+		table.row();
+		table.add(message_field).width(220).height(20);
+
+		return table;
 	}
 
 

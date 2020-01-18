@@ -15,7 +15,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Bomberman extends Game {
 	public final int port = 8080;
@@ -56,6 +58,7 @@ public class Bomberman extends Game {
 	//to lobby
 	public int room;
 	public boolean ready = false;
+	public List<String> chat = new ArrayList<>();
 	//public List<Bomber> players_in_room = new ArrayList<>();
 
 
@@ -244,6 +247,12 @@ class ServerConnection extends Thread {
 							}
 						}
 					} catch (Exception e) {}
+				} else if(msg.startsWith("chat")){
+					String id = msg.split(" ",3)[1];
+					String message = msg.split(" ", 3)[2];
+					String fullMessage = "Gracz " + id + ": " + message;
+					System.out.println(message);
+					bomberman.chat.add(fullMessage);
 				}
 			}
 		} catch (Exception e) {

@@ -427,6 +427,9 @@ class Multi extends Thread {
 					}
 
 					//printMap();
+				} else if(msg.startsWith("chat")){
+					Room room = Server.rooms.get(player.room);
+					room.broadcast(msg);
 				}
 
 			} catch (Exception e) {

@@ -11,6 +11,7 @@ class Player {
 	public DataOutputStream	out;
 	public DataInputStream in;
 	public int room;
+	public boolean ready = false;
 
 	public Player(float x, float y, String id, Socket socket, int room) throws IOException {
 		this.x = x;
@@ -254,6 +255,7 @@ class Room {
 				//e.printStackTrace();
 				System.out.println("Failed to broadcast to client.");
 				curr_number_of_players--;
+				is_full = false;
 				players_in_room.remove(player);
 			}
 		}
@@ -287,6 +289,12 @@ class Room {
 			}
 		}
 	}
+
+	public void updatePlayers(){
+		for(Player player: players_in_room){
+			broadcast("players " + player.id + " " + player.ready);
+		}
+	}
 }
 
 class Multi extends Thread {
@@ -297,7 +305,7 @@ class Multi extends Thread {
 	}
 
 	public void run()  {
-		System.out.println("New player " + player.socket.getPort() + " connected.");
+		System.out.println("New player " + player.id + " (" + player.socket.getPort() + ") connected.");
 		while (true) {
 			try {
 				String msg = "";
@@ -306,11 +314,12 @@ class Multi extends Thread {
 				}
 				if (msg.startsWith("connected")) {
 					synchronized (player.out){
-						player.out.writeUTF("created " + player.id + " " + player.x + " " + player.y);
+						player.out.writeUTF("created " + player.id + " " + player.x + " " + player.y + " " + player.room);
 						Room room = Server.rooms.get(player.room);
 						room.sendBoxesPositions();
+						room.updatePlayers();
 					}
-				} else if (msg.startsWith("playerMoved")) {
+				}  else if (msg.startsWith("playerMoved")) {
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
 					int direction = Integer.parseInt(msg.split(" ")[3]);
@@ -339,7 +348,7 @@ class Multi extends Thread {
 					//player.y = Float.parseFloat(y);
 					for (Player other : room.players_in_room) {
 						synchronized (player.out){
-							player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
+							player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y + " " + other.ready);
 						}
 					}
 				} else if (msg.startsWith("bomb")) {
@@ -425,7 +434,7 @@ class Multi extends Thread {
 				room.players_in_room.remove(player);
 				room.broadcast("remove " + player.id);
 				Server.players.remove(player);
-				System.out.println("Player " + player.socket.getPort() + " disconnected.");
+				System.out.println("Player " + player.id + " (" + player.socket.getPort() + ") disconnected.");
 				break;
 			}
 		}
@@ -473,7 +482,6 @@ public class Server extends Thread{
 						id++;
 						if(room.curr_number_of_players == room.MAX_CAPACITY){
 							room.is_full = true;
-							break;
 						}
 					} catch (IOException e) {
 						e.printStackTrace();

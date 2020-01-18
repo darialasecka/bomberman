@@ -1,28 +1,28 @@
 package com.gdx.bomberman;
 
 import com.badlogic.gdx.*;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 
-import com.gdx.bomberman.screens.ClientFx;
 import com.gdx.bomberman.screens.Lobby;
 import com.gdx.bomberman.sprites.Blast;
 import com.gdx.bomberman.sprites.Bomb;
 import com.gdx.bomberman.sprites.Bomber;
 import com.gdx.bomberman.screens.PlayScreen;
 import com.gdx.bomberman.sprites.Box;
-import javafx.stage.Stage;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Bomberman extends Game {
 	public final int port = 8080;
+
+	public Lobby lobby;
+	public PlayScreen screen;
+
 	SpriteBatch batch;
 	Socket socket;
 	public String id;
@@ -44,16 +44,20 @@ public class Bomberman extends Game {
 	public DataInputStream in;
 	public float x;
 	public float y;
-	PlayScreen screen;
 	public int direction; // 0-left, 1-right, 2-up, 3-down
 	public HashMap<String, Bomb> bombs;
 	public int currBombCounter = 0;
 	public int MAX_BOMBS = 2;
 	public int BOMB_POWER = 1;
 
-
 	public HashMap<String, Box> boxes;
 	public HashMap<String, Blast> blasts;
+
+	//to lobby
+	public int room;
+	public boolean ready = false;
+	//public List<Bomber> players_in_room = new ArrayList<>();
+
 
 
 
@@ -91,8 +95,8 @@ public class Bomberman extends Game {
 		blastV1.setSize(blastV1.getWidth() * blastScale, blastV1.getHeight() * blastScale);
 
 		screen = new PlayScreen(this);
-		Lobby lobby = new Lobby();
-		setScreen(screen);
+		lobby = new Lobby(this);
+		setScreen(lobby);
 
 		connectSocket();
 	}
@@ -144,6 +148,7 @@ class ServerConnection extends Thread {
 					String id = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
 					String y = msg.split(" ")[3];
+					String ready = msg.split(" ")[4];
 					if (bomberman.otherPlayers.get(id) != null) {
 						bomberman.otherPlayers.get(id).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					} else if (bomberman.id != null && id.equals(bomberman.id) && bomberman.player != null) {
@@ -152,18 +157,33 @@ class ServerConnection extends Thread {
 						bomberman.y = Float.parseFloat(y);
 					} else if (bomberman.id != null && !id.equals(bomberman.id)){
 						String playerId = id;
-						Bomber enemy = new Bomber(bomberman.enemyBomber, 0);
-						bomberman.otherPlayers.put(playerId, enemy);
+						/*Bomber enemy = new Bomber(bomberman.enemyBomber, 0, Boolean.parseBoolean(ready));
+						bomberman.otherPlayers.put(playerId, enemy);*/
 						bomberman.otherPlayers.get(playerId).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					}
+
+				} else if(msg.startsWith("players")){
+					String playerId = msg.split(" ")[1];
+					String ready = msg.split(" ")[2];
+
+					if(!bomberman.id.equals(playerId) && bomberman.otherPlayers.get(playerId) == null){
+						Bomber enemy = new Bomber(bomberman.enemyBomber, 0, Boolean.parseBoolean(ready));
+						bomberman.otherPlayers.put(playerId, enemy);
+					} else if(!bomberman.id.equals(playerId) && bomberman.otherPlayers.get(playerId) != null){
+						bomberman.otherPlayers.get(playerId).ready = Boolean.parseBoolean(ready);
+					}
+
 				} else if (msg.startsWith("created")) {
 					bomberman.id = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
 					String y = msg.split(" ")[3];
-					bomberman.player = new Bomber(bomberman.playerBomber, 0);
+					String room = msg.split(" ")[4];
+					bomberman.player = new Bomber(bomberman.playerBomber, 0, false);
 					bomberman.player.setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					bomberman.x = Float.parseFloat(x);
 					bomberman.y = Float.parseFloat(y);
+					bomberman.room = Integer.parseInt(room);
+
 				} else if(msg.startsWith("box")){
 					String number = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
@@ -175,6 +195,7 @@ class ServerConnection extends Thread {
 				} else if (msg.startsWith("remove")) {
 					String id = msg.split(" ")[1];
 					bomberman.otherPlayers.remove(id);
+
 				} else if (msg.startsWith("bomb")) {
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
@@ -186,14 +207,14 @@ class ServerConnection extends Thread {
 					bomberman.bombs.put(number, bomb); //power na razie z automatu 1
 					bomberman.bombs.get(number).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					//String power = msg.split(" ")[3];
-				} else if(msg.startsWith("explosion")) {
 
+				} else if(msg.startsWith("explosion")) {
+					//System.out.println("Wybuch!!!");
 					String number = msg.split(" ")[1];
 					if(bomberman.bombs.get(number).bomberId == Integer.parseInt(bomberman.id)) bomberman.currBombCounter--;
 					bomberman.bombs.remove(number);
 
 				} else if(msg.startsWith("blast")) {
-					//System.out.println("Wybuch!!!");
 					String number = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
 					String y = msg.split(" ")[3];
@@ -212,6 +233,7 @@ class ServerConnection extends Thread {
 
 				} else if (msg.startsWith("clearBoxes")){//właściwie to equals by starczyło ale olać xd
 					bomberman.boxes.clear();
+
 				} else if(msg.startsWith("endBlast")){
 					String bombNumber = msg.split(" ")[1];
 					try{

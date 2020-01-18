@@ -12,17 +12,15 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.math.Vector2;
 
-
-
-public class Bomber extends Sprite /* implements InputProcessor*/ {
+public class Bomber extends Sprite {
 
 	int direction;
+	public boolean ready;
 
-	String wall = "blocked";
-
-	public Bomber(Sprite sprite, int dir) {
+	public Bomber(Sprite sprite, int dir, boolean ready) {
 		super(sprite);
 		this.direction = dir;
+		this.ready = ready;
 	}
 
 	public void draw(SpriteBatch spriteBatch){

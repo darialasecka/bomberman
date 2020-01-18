@@ -199,19 +199,29 @@ class ServerConnection extends Thread {
 					String y = msg.split(" ")[3];
 					String type = msg.split(" ")[4];
 					String start = msg.split(" ")[5];
+					String bombNumber = msg.split(" ")[6];
 					float fx = Float.parseFloat(x);
 					float fy = Float.parseFloat(y);
 					Blast blast;
-					System.out.println(msg);
-					System.out.println(type);
-					if(type.equals("h")) blast = new Blast(bomberman.blastH1, fx, fy, Long.parseLong(start));
-					else if(type.equals("v")) blast = new Blast(bomberman.blastV1, fx, fy, Long.parseLong(start));
-					else blast = new Blast(bomberman.blastC1, fx, fy, Long.parseLong(start));
+					//System.out.println(msg);
+					if(type.equals("h")) blast = new Blast(bomberman.blastH1, fx, fy, Long.parseLong(start), Integer.parseInt(bombNumber));
+					else if(type.equals("v")) blast = new Blast(bomberman.blastV1, fx, fy, Long.parseLong(start), Integer.parseInt(bombNumber));
+					else blast = new Blast(bomberman.blastC1, fx, fy, Long.parseLong(start), Integer.parseInt(bombNumber));
 					bomberman.blasts.put(number, blast);
 					bomberman.blasts.get(number).setPosition(fx, fy);
 
 				} else if (msg.startsWith("clearBoxes")){//właściwie to equals by starczyło ale olać xd
 					bomberman.boxes.clear();
+				} else if(msg.startsWith("endBlast")){
+					String bombNumber = msg.split(" ")[1];
+					try{
+						for(HashMap.Entry<String, Blast> entry: bomberman.blasts.entrySet()){
+							int currBombNumber = entry.getValue().bombNumber;
+							if(currBombNumber == Integer.parseInt(bombNumber)){
+								bomberman.blasts.remove(entry.getKey());
+							}
+						}
+					} catch (Exception e) {}
 				}
 			}
 		} catch (Exception e) {

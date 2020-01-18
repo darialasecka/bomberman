@@ -279,7 +279,7 @@ class Multi extends Thread {
 		}
 	}
 
-	public void sendBlastPositions(DataOutputStream out, String start) throws IOException {
+	public void sendBlastPositions(DataOutputStream out, String start, String bombNumber) throws IOException {
 		for(int i = 1; i < map.size()-1; i++){
 			for(int j = 1; j < walls.size()-1; j++){ //którakolwiek
 				if (map.get(i).get(j).startsWith("3")){
@@ -287,11 +287,11 @@ class Multi extends Thread {
 					float blastY = ((map.size() - 1.15f) * blockSize) - (i * blockSize);//chyba tak xd
 					String type = "";
 					String position = map.get(i).get(j);
-					if (position.length() == 1) type = "c";
-					else if (position.endsWith("0") || position.endsWith("1")) type = "h";
+					if (position.endsWith("0") || position.endsWith("1")) type = "h";
 					else if (position.endsWith("2") || position.endsWith("3")) type = "v";
+					else type = "c";
 					synchronized (out) {
-						out.writeUTF("blast " + Server.blastNumber++ + " " + blastX + " " + blastY + " " + type + " " + start);
+						out.writeUTF("blast " + Server.blastNumber++ + " " + blastX + " " + blastY + " " + type + " " + start + " " + bombNumber);
 					}
 				}
 			}
@@ -347,7 +347,8 @@ class Multi extends Thread {
 					room.broadcast(msg + " " + Server.bombNumber++);
 				} else if (msg.startsWith("explosion")) {
 					Room room = Server.rooms.get(player.room);
-					room.broadcast("explosion " + msg.split(" ")[4]);
+					String bombNumber = msg.split(" ")[4];
+					room.broadcast("explosion " + bombNumber);
 
 					String x = msg.split(" ")[1];
 					String y = msg.split(" ")[2];
@@ -362,37 +363,56 @@ class Multi extends Thread {
 
 					int count = 0;
 					//środek
-					map.get(posY).set(posX,"3");
+					map.get(posY).set(posX,"3"+bombNumber+"-");
 
 					//w lewo
 					while((map.get(posY).get(posX-count-1) == "0" || map.get(posY).get(posX-count-1).startsWith("3") || map.get(posY).get(posX-count-1) == "2") && count != Integer.parseInt(power)){
-						map.get(posY).set(posX-count-1, "30"); //lewo oznacza inaczej
+						map.get(posY).set(posX-count-1, "3"+bombNumber+"0"); //lewo oznacza inaczej
 						count++;
 					}
 					//gora
 					count = 0;
 					while((map.get(posY-count-1).get(posX) == "0" || map.get(posY-count-1).get(posX).startsWith("3") || map.get(posY-count-1).get(posX) == "2") && count != Integer.parseInt(power)){
-						map.get(posY-count-1).set(posX, "32");
+						map.get(posY-count-1).set(posX, "3"+bombNumber+"2");
 						count++;
 					}
 					//prawo
 					count = 0;
 					while((map.get(posY).get(posX+count+1) == "0" || map.get(posY).get(posX+count+1).startsWith("3") || map.get(posY).get(posX+count+1) == "2") && count != Integer.parseInt(power)){
-						map.get(posY).set(posX+count+1, "31");
+						map.get(posY).set(posX+count+1, "3"+bombNumber+"1");
 						count++;
 					}
 					//dol
 					count = 0;
 					while((map.get(posY+count+1).get(posX) == "0" || map.get(posY+count+1).get(posX).startsWith("3") || map.get(posY+count+1).get(posX) == "2") && count != Integer.parseInt(power)){
-						map.get(posY+count+1).set(posX, "33");
+						map.get(posY+count+1).set(posX, "3"+bombNumber+"3");
 						count++;
 					}
 					//wybuchy dobrze oznacza
 					//printMap();
 
-					sendBlastPositions(player.out, msg.split(" ")[5]);
+					sendBlastPositions(player.out, msg.split(" ")[5], bombNumber);
 					room.broadcast("clearBoxes");
 					sendBoxesPositions(player.out);
+				} else if(msg.startsWith("endBlast")){
+					Room room = Server.rooms.get(player.room);
+					room.broadcast(msg);
+
+					String bombNumber = msg.split(" ")[1];
+
+					for(int i = 1; i < map.size()-1; i++){
+						for(int j = 1; j < walls.size()-1; j++) {
+						//sprawdzić czy bombNumber jest ten sam i usunąć
+							String position = map.get(i).get(j);
+							if(position.length() >= 3){
+								String mapBombNumber = position.substring(1, position.length()-1);
+								System.out.println(mapBombNumber);
+								if(mapBombNumber.equals(bombNumber)) map.get(i).set(j, "0");
+							}
+						}
+					}
+
+					printMap();
 				}
 
 			} catch (Exception e) {

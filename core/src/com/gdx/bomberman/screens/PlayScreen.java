@@ -28,7 +28,6 @@ public class PlayScreen implements Screen {
 	OrthographicCamera camera;
 	Bomberman bomberman;
 	SpriteBatch batch;
-	Bomb bomb;
 
 
 	public PlayScreen(Bomberman bomberman){
@@ -110,6 +109,22 @@ public class PlayScreen implements Screen {
 		}
 	}
 
+	public void updateBlast(Blast blast){
+		long currTime = System.currentTimeMillis();
+		if((currTime - blast.start) / 1000 > blast.DURATION_TIME){
+			try{
+				synchronized (bomberman.out){
+					bomberman.out.writeUTF("endBlast " + blast.bombNumber);
+				}
+				//bomberman.bombs.remove(bomb.bombNumber);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			blast.draw(batch);
+		}
+	}
+
 	@Override
 	public void render (float dt) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -130,7 +145,7 @@ public class PlayScreen implements Screen {
 
 		try{
 			for(HashMap.Entry<String, Blast> entry: bomberman.blasts.entrySet()){
-				entry.getValue().draw(batch);
+				updateBlast(entry.getValue());
 			}
 		} catch(Exception e) {}
 

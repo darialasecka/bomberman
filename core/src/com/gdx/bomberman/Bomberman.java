@@ -4,6 +4,7 @@ import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 
+import com.gdx.bomberman.screens.GameOver;
 import com.gdx.bomberman.screens.Lobby;
 import com.gdx.bomberman.sprites.Blast;
 import com.gdx.bomberman.sprites.Bomb;
@@ -61,7 +62,9 @@ public class Bomberman extends Game {
 	public boolean ready = false;
 	public List<String> chat = new ArrayList<>();
 	public boolean start = false;
-	//public List<Bomber> players_in_room = new ArrayList<>();
+
+	//to dead xd
+	public boolean is_dead = false;
 
 
 
@@ -102,6 +105,7 @@ public class Bomberman extends Game {
 
 		screen = new PlayScreen(this, game);
 		lobby = new Lobby(this, game);
+		GameOver over = new GameOver(game);
 		setScreen(lobby);
 
 		connectSocket();

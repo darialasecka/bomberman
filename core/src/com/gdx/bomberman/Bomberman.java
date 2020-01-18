@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Bomberman extends Game {
+	public Game game;
 	public final int port = 8080;
 
 	public Lobby lobby;
@@ -59,6 +60,7 @@ public class Bomberman extends Game {
 	public int room;
 	public boolean ready = false;
 	public List<String> chat = new ArrayList<>();
+	public boolean start = false;
 	//public List<Bomber> players_in_room = new ArrayList<>();
 
 
@@ -66,6 +68,7 @@ public class Bomberman extends Game {
 
 	@Override
 	public void create () {
+		game = this;
 		batch = new SpriteBatch();
 
 		textureAtlas = new TextureAtlas(Gdx.files.internal("Spritesheet/Sprites.atlas"));
@@ -97,8 +100,8 @@ public class Bomberman extends Game {
 		blastH1.setSize(blastH1.getWidth() * blastScale, blastH1.getHeight() * blastScale);
 		blastV1.setSize(blastV1.getWidth() * blastScale, blastV1.getHeight() * blastScale);
 
-		screen = new PlayScreen(this);
-		lobby = new Lobby(this);
+		screen = new PlayScreen(this, game);
+		lobby = new Lobby(this, game);
 		setScreen(lobby);
 
 		connectSocket();
@@ -151,7 +154,6 @@ class ServerConnection extends Thread {
 					String id = msg.split(" ")[1];
 					String x = msg.split(" ")[2];
 					String y = msg.split(" ")[3];
-					String ready = msg.split(" ")[4];
 					if (bomberman.otherPlayers.get(id) != null) {
 						bomberman.otherPlayers.get(id).setPosition(Float.parseFloat(x), Float.parseFloat(y));
 					} else if (bomberman.id != null && id.equals(bomberman.id) && bomberman.player != null) {
@@ -174,6 +176,8 @@ class ServerConnection extends Thread {
 						bomberman.otherPlayers.put(playerId, enemy);
 					} else if(!bomberman.id.equals(playerId) && bomberman.otherPlayers.get(playerId) != null){
 						bomberman.otherPlayers.get(playerId).ready = Boolean.parseBoolean(ready);
+					} else {
+						bomberman.ready = Boolean.parseBoolean(ready);
 					}
 
 				} else if (msg.startsWith("created")) {
@@ -247,13 +251,19 @@ class ServerConnection extends Thread {
 							}
 						}
 					} catch (Exception e) {}
+
 				} else if(msg.startsWith("chat")){
 					String id = msg.split(" ",3)[1];
 					String message = msg.split(" ", 3)[2];
 					String fullMessage = "Gracz " + id + ": " + message;
 					System.out.println(message);
 					bomberman.chat.add(fullMessage);
+
+				} else if(msg.startsWith("start")){
+					//System.out.println("START");
+					bomberman.start = true;
 				}
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

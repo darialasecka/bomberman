@@ -1,9 +1,6 @@
 package com.gdx.bomberman.screens;
 
-import com.badlogic.gdx.ApplicationListener;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -29,9 +26,11 @@ public class Lobby implements Screen {
 	private List<String> players_list;
 	int room;
 	Label roomLabel;
+	Game game;
 
-	public Lobby(Bomberman bomberman){
+	public Lobby(Bomberman bomberman, Game game){
 		this.bomberman = bomberman;
+		this.game = game;
 	}
 
 	@Override
@@ -52,32 +51,33 @@ public class Lobby implements Screen {
 
 		readyButton.setWidth(200f);
 		readyButton.setHeight(20f);
-		readyButton.setPosition(Gdx.graphics.getWidth() /2 - 100f, Gdx.graphics.getHeight()/2 - 10f);
 
 		readyButton.addListener(new ClickListener(){
 			@Override
 			public void clicked(InputEvent event, float x, float y){
-				readyButton.setText("Gotowy!(Na razie nic nie robie xd)");
+				try {
+					synchronized (bomberman.out) {
+						bomberman.out.writeUTF("ready " + bomberman.id);
+						readyButton.setText("Gotowy!");
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 
-		root.add(new Label("Gracze", skin, "default")).colspan(3);
-		root.add(new Label("Chat", skin, "default")).colspan(3);
 		roomLabel = new Label("Pokoj ", skin, "default");
-		root.add(roomLabel).colspan(3);
+		root.add(roomLabel).colspan(5);
+		root.row();
+		root.add(new Label("Gracze", skin, "default")).colspan(1);
+		root.add(new Label(" ", skin, "default"));
+		root.add(new Label("Chat", skin, "default")).colspan(1);
 		root.row();
 		root.add(playerInfoTable);
+		root.add(new Label("    ", skin, "default"));
 		root.add(chatTable);
 		root.row();
-		root.row();
 		root.add(readyButton);
-
-
-		//if(keycode == Input.Keys.ENTER && !message_field.getText().isEmpty()){
-		//                    socket.emit("player_message", message_field.getText() + "\n", clients.get(0).session_id);
-		//                    message_field.setText("");
-		//                }
-
 
 		//root.setPosition(Gdx.graphics.getWidth() /2 - 100f, Gdx.graphics.getHeight()/2 - 10f);
 		stage.addActor(root);
@@ -95,6 +95,8 @@ public class Lobby implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+		checkStart();
+
 		batch.begin();
 		try{
 			updatePlayersList();
@@ -111,7 +113,6 @@ public class Lobby implements Screen {
 				fullChat += message + "\n";
 			}
 			chatLabel.setText(fullChat);
-			//chatLabel.setText(chatLabel.getText() + "<"+pc.name+"> : " + msg);
 		} catch (Exception e) {}
 		stage.draw();
 		stage.act();
@@ -139,10 +140,10 @@ public class Lobby implements Screen {
 		Table table = new Table();
 		players_list = new List<String>(skin, "default");
 
-		Label titles = new Label("  Gracz                      Status", skin,"default");
+		Label titles = new Label("   Gracz                      Status", skin,"default");
 		titles.setColor(Color.WHITE);
 
-		table.add(new ScrollPane(titles, skin)).align(Align.left).width(220);
+		table.add(new ScrollPane(titles, skin)).align(Align.left).width(220).height(35);
 		table.row();
 		table.add(new ScrollPane(players_list, skin)).width(220).height(100);
 
@@ -159,7 +160,7 @@ public class Lobby implements Screen {
 		for(int i = 0; i < length; i++){
 			item += " ";
 		}
-		item += (bomberman.ready ? "Gotowy": "Nie gotowy");
+		item += (bomberman.ready ? "   Gotowy": "Nie gotowy");
 
 		temp.add(item);
 
@@ -169,7 +170,7 @@ public class Lobby implements Screen {
 			for(int i = 0; i < length; i++){
 				item += " ";
 			}
-			item += (player.getValue().ready ? "Gotowy": "Nie gotowy");
+			item += (player.getValue().ready ? "   Gotowy": "Nie gotowy");
 
 			temp.add(item);
 		}
@@ -224,7 +225,12 @@ public class Lobby implements Screen {
 	}
 
 
-
+	public void checkStart(){
+		if(bomberman.start){
+			PlayScreen playScreen = new PlayScreen(bomberman, game);
+			game.setScreen(playScreen);
+		}
+	}
 
 
 

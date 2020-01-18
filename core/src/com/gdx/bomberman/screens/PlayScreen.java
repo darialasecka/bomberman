@@ -1,5 +1,6 @@
 package com.gdx.bomberman.screens;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -28,11 +29,13 @@ public class PlayScreen implements Screen {
 	OrthographicCamera camera;
 	Bomberman bomberman;
 	SpriteBatch batch;
+	Game game;
 
 
-	public PlayScreen(Bomberman bomberman){
+	public PlayScreen(Bomberman bomberman, Game game){
 		batch = new SpriteBatch();
 		this.bomberman = bomberman;
+		this.game = game;
 
 	}
 

@@ -295,6 +295,35 @@ class Room {
 			broadcast("players " + player.id + " " + player.ready);
 		}
 	}
+	public void startGame(){
+		//40,40 - left down corner
+		//40,360 - left up corner
+		//490,360 - right up corner
+		//490,40 - right down corner
+
+		//player 0
+		players_in_room.get(0).x = 40;
+		players_in_room.get(0).y = 40;
+		//player 1
+		players_in_room.get(1).x = 490;
+		players_in_room.get(1).y = 360;
+		//player 2
+		if(curr_number_of_players >= 3){
+			players_in_room.get(2).x = 40;
+			players_in_room.get(2).y =360;
+		}
+		//player 3
+		if(curr_number_of_players == 4){
+			players_in_room.get(3).x = 490;
+			players_in_room.get(3).y = 40;
+		}
+
+		for (Player other : players_in_room) {
+			broadcast("update " + other.id + " " + other.x + " " + other.y);
+		}
+		active_game = true;
+		broadcast("start");
+	}
 }
 
 class Multi extends Thread {
@@ -348,7 +377,7 @@ class Multi extends Thread {
 					//player.y = Float.parseFloat(y);
 					for (Player other : room.players_in_room) {
 						synchronized (player.out){
-							player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y + " " + other.ready);
+							player.out.writeUTF("update " + other.id + " " + other.x + " " + other.y);
 						}
 					}
 				} else if (msg.startsWith("bomb")) {
@@ -430,6 +459,17 @@ class Multi extends Thread {
 				} else if(msg.startsWith("chat")){
 					Room room = Server.rooms.get(player.room);
 					room.broadcast(msg);
+				} else if(msg.startsWith("ready")){
+					String id = msg.split(" ")[1];
+					Room room = Server.rooms.get(player.room);
+					int readyCounter = 0;
+					for(Player player: room.players_in_room){
+						if(id.equals(player.id)) player.ready = true;
+						if(player.ready) readyCounter++;
+					}
+					room.updatePlayers();
+					if(readyCounter == room.curr_number_of_players && room.curr_number_of_players >= room.MIN_CAPACITY_REQUIRED)
+						room.startGame();
 				}
 
 			} catch (Exception e) {
@@ -472,10 +512,6 @@ public class Server extends Thread{
 				while(!room.active_game || !room.is_full){
 					try {
 						Socket socket = serverSocket.accept();
-						//40,40 - left down corner
-						//40,360 - left up corner
-						//490,40 - right down corner
-						//490,360 - right up corner
 						//na razie niech wszyscy się tworzą na 40,40, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length w danym pokoju
 						Player player = new Player(40,40, Integer.toString(id), socket, roomNumber);
 						room.players_in_room.add(player);

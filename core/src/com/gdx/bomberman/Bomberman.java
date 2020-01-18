@@ -252,11 +252,14 @@ class ServerConnection extends Thread {
 						}
 					} catch (Exception e) {}
 
+				} else if (msg.startsWith("chatNew")){
+					bomberman.chat.add(msg.split(" ",2)[1]);
+
 				} else if(msg.startsWith("chat")){
 					String id = msg.split(" ",3)[1];
 					String message = msg.split(" ", 3)[2];
 					String fullMessage = "Gracz " + id + ": " + message;
-					System.out.println(message);
+					//System.out.println(message);
 					bomberman.chat.add(fullMessage);
 
 				} else if(msg.startsWith("start")){

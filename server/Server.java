@@ -52,7 +52,7 @@ class Room {
 	ArrayList floor5;
 	ArrayList floor6;
 
-
+	public List<String> chat = new ArrayList<>();
 
 	public Room(int number) throws IOException {
 		this.number = number;
@@ -295,6 +295,20 @@ class Room {
 			broadcast("players " + player.id + " " + player.ready);
 		}
 	}
+
+	public void chatNew(Player player){
+		for(int i=0; i<chat.size(); i++){
+			try {
+				synchronized (player.out){
+					//System.out.println(chat.get(i));
+					player.out.writeUTF("chatNew " + chat.get(i));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public void startGame(){
 		//40,40 - left down corner
 		//40,360 - left up corner
@@ -322,6 +336,7 @@ class Room {
 			broadcast("update " + other.id + " " + other.x + " " + other.y);
 		}
 		active_game = true;
+		is_full = true; //wiem, ze nie jest
 		broadcast("start");
 	}
 }
@@ -347,6 +362,7 @@ class Multi extends Thread {
 						Room room = Server.rooms.get(player.room);
 						room.sendBoxesPositions();
 						room.updatePlayers();
+						room.chatNew(player);
 					}
 				}  else if (msg.startsWith("playerMoved")) {
 					String x = msg.split(" ")[1];
@@ -392,8 +408,6 @@ class Multi extends Thread {
 					String y = msg.split(" ")[2];
 					String power = msg.split(" ")[3];
 
-					//String power = "4";//do tesów
-
 					// tu ogarniamy pozycje bomby i liczymy gdzie powinien być wybuch
 					int posX = (int)(Float.parseFloat(x) / room.blockSize);
 					int posY = (int)(Float.parseFloat(y) / room.blockSize);
@@ -404,25 +418,25 @@ class Multi extends Thread {
 					room.map.get(posY).set(posX,"3"+bombNumber+"-");
 
 					//w lewo
-					while((room.map.get(posY).get(posX-count-1) == "0" || room.map.get(posY).get(posX-count-1).startsWith("3") || room.map.get(posY).get(posX-count-1) == "2") && count != Integer.parseInt(power)){
+					while(room.map.get(posY).get(posX-count-1) != "1" && count != Integer.parseInt(power)){
 						room.map.get(posY).set(posX-count-1, "3"+bombNumber+"0"); //lewo oznacza inaczej
 						count++;
 					}
 					//gora
 					count = 0;
-					while((room.map.get(posY-count-1).get(posX) == "0" || room.map.get(posY-count-1).get(posX).startsWith("3") || room.map.get(posY-count-1).get(posX) == "2") && count != Integer.parseInt(power)){
+					while(room.map.get(posY-count-1).get(posX)!= "1" && count != Integer.parseInt(power)){
 						room.map.get(posY-count-1).set(posX, "3"+bombNumber+"2");
 						count++;
 					}
 					//prawo
 					count = 0;
-					while((room.map.get(posY).get(posX+count+1) == "0" || room.map.get(posY).get(posX+count+1).startsWith("3") || room.map.get(posY).get(posX+count+1) == "2") && count != Integer.parseInt(power)){
+					while(room.map.get(posY).get(posX+count+1) != "1" && count != Integer.parseInt(power)){
 						room.map.get(posY).set(posX+count+1, "3"+bombNumber+"1");
 						count++;
 					}
 					//dol
 					count = 0;
-					while((room.map.get(posY+count+1).get(posX) == "0" || room.map.get(posY+count+1).get(posX).startsWith("3") || room.map.get(posY+count+1).get(posX) == "2") && count != Integer.parseInt(power)){
+					while(room.map.get(posY+count+1).get(posX) != "1" && count != Integer.parseInt(power)){
 						room.map.get(posY+count+1).set(posX, "3"+bombNumber+"3");
 						count++;
 					}
@@ -458,6 +472,10 @@ class Multi extends Thread {
 					//printMap();
 				} else if(msg.startsWith("chat")){
 					Room room = Server.rooms.get(player.room);
+					String id = msg.split(" ",3)[1];
+					String message = msg.split(" ", 3)[2];
+					String fullMessage = "Gracz " + id + ": " + message;
+					room.chat.add(fullMessage);
 					room.broadcast(msg);
 				} else if(msg.startsWith("ready")){
 					String id = msg.split(" ")[1];
@@ -476,6 +494,7 @@ class Multi extends Thread {
 				Room room = Server.rooms.get(player.room);
 				room.players_in_room.remove(player);
 				room.broadcast("remove " + player.id);
+				room.is_full = false;
 				Server.players.remove(player);
 				System.out.println("Player " + player.id + " (" + player.socket.getPort() + ") disconnected.");
 				break;
@@ -504,51 +523,39 @@ public class Server extends Thread{
 			System.out.println("Failed to create ServerSocket.");
 		}
 		System.out.println("Server is running...");
-		while (true) {
-			try {
-				Room room = new Room(roomNumber);
-				rooms.add(room);
-				System.out.println("Created room " + roomNumber);
-				while(!room.active_game || !room.is_full){
-					try {
-						Socket socket = serverSocket.accept();
-						//na razie niech wszyscy się tworzą na 40,40, póżniej poprawimy, żeby byli w rogach w zależności od players-list-length w danym pokoju
-						Player player = new Player(40,40, Integer.toString(id), socket, roomNumber);
-						room.players_in_room.add(player);
-						room.curr_number_of_players ++;
-						players.add(player);
-						new Multi(player).start(); //coś co ogarnie klientów
-						id++;
-						if(room.curr_number_of_players == room.MAX_CAPACITY){
-							room.is_full = true;
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-						System.out.println("Failed to connect to client.");
+		Room room = null;
+		try {
+			room = new Room(roomNumber);
+			rooms.add(room);
+			System.out.println("Created room " + roomNumber);
+			while (true) {
+				try {
+					Socket socket = serverSocket.accept();
+					if(room.active_game || room.is_full) {
+						roomNumber++;
+						room = new Room(roomNumber);
+						rooms.add(room);
+						System.out.println("Created room " + roomNumber);
 					}
+
+					Player player = new Player(40,40, Integer.toString(id), socket, roomNumber);
+					room.players_in_room.add(player);
+					room.curr_number_of_players ++;
+					players.add(player);
+					new Multi(player).start(); //coś co ogarnie klientów
+					id++;
+					if(room.curr_number_of_players == room.MAX_CAPACITY){
+						room.is_full = true;
+					}
+				} catch (Exception e){
+					e.printStackTrace();
+					System.out.println("Failed to connect to client.");
 				}
-				roomNumber++;
-			} catch (Exception e){
-				e.printStackTrace();
-				System.out.println("Failed to create room.");
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Failed to create room.");
 		}
 
 	}
-	//sends message to all players in room
-	/*public static void broadcast(String msg) {
-		DataOutputStream out;
-		for(Player player: players) {
-			out = player.out;
-			try {
-				synchronized (player.out){
-					out.writeUTF(msg);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				//System.out.println("Failed to broadcast to client.");
-				players.remove(player);
-			}
-		}
-	}*/
 }

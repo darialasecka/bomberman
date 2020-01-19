@@ -31,7 +31,9 @@ public class PlayScreen implements Screen {
 	SpriteBatch batch;
 	Game game;
 
-
+	/** Creates PlayScreen, it takes Bomberman and Game as parameters.
+	 * @param  bomberman allows to get ad set bomberman variables
+	 * @param game allows to change screen in case of loosing or winning game*/
 	public PlayScreen(Bomberman bomberman, Game game){
 		batch = new SpriteBatch();
 		this.bomberman = bomberman;
@@ -39,6 +41,7 @@ public class PlayScreen implements Screen {
 
 	}
 
+	/**Shows map on which players will be playing*/
 	@Override
 	public void show() {
 		map = new TmxMapLoader().load("maps/map3c.tmx");
@@ -47,6 +50,8 @@ public class PlayScreen implements Screen {
 		camera.position.set(272,210,0); //275,210
 	}
 
+	/** Handles player input allowing him to move and place bombs, it takes dt as parameter. Character speed is set to 130.
+	 * @param dt is a deltatime which multiplayed by speed allows player to freely move by certain speed */
 	public void handleInput(float dt){
 		int speed = 130;
 		if(bomberman.player != null){
@@ -83,6 +88,8 @@ public class PlayScreen implements Screen {
 		}
 	}
 
+	/**If player position wasn't updated by UPDATE_TIME, send notifibation to server about needing to update. UPDATE_TIME is set to 1/30f
+	 * @param dt is delta time that allows to check when was tke last time player position was updated*/
 	public void updateServer(float dt){
 		timer += dt;
 		if(timer >= UPDATE_TIME && bomberman.player != null){
@@ -95,7 +102,8 @@ public class PlayScreen implements Screen {
 			}
 		}
 	}
-
+	/**Updates player about bomb exploding. If bomb should explode, it sends proper informaion to server abou it.
+	 * @param bomb information about bomb that is checked for explosion*/
 	public void updateExplosion(Bomb bomb){
 		long currTime = System.currentTimeMillis();
 		if((currTime - bomb.start) / 1000 > bomb.EXPLOSION_TIME){
@@ -111,7 +119,8 @@ public class PlayScreen implements Screen {
 			bomb.draw(batch);
 		}
 	}
-
+	/**Updates player about blast disappearing. If blas should disappear, it sends proper information to server about it.
+	 * @param blast information about blast that about to diappear*/
 	public void updateBlast(Blast blast){
 		long currTime = System.currentTimeMillis();
 		if((currTime - blast.start) / 1000 > blast.DURATION_TIME){
@@ -127,7 +136,7 @@ public class PlayScreen implements Screen {
 			blast.draw(batch);
 		}
 	}
-
+	/**Checks if player is dead or player won the game and changes Screen accordingly.*/
 	public void checkIsDeadOrWin(){
 		if(bomberman.is_dead){
 			GameOver gameOver = new GameOver(game);
@@ -138,7 +147,7 @@ public class PlayScreen implements Screen {
 			game.setScreen(win);
 		}
 	}
-
+	/**Renders map, all players and objects, handles input and sends information to server if needed*/
 	@Override
 	public void render (float dt) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);

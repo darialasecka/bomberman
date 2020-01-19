@@ -9,6 +9,11 @@ public class Box extends Sprite{
 	public float x;
 	public float y;
 
+	/** Destructable box, it takes sprite, x, y as parameters.
+	 * @param sprite sprite of a box
+	 * @param x position x of the box
+	 * @param y position y of the box*/
+
 	public Box (Sprite sprite, float x, float y){
 		super(sprite);
 		this.x = x;

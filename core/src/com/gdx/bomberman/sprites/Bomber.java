@@ -17,6 +17,10 @@ public class Bomber extends Sprite {
 	int direction;
 	public boolean ready;
 
+	/** Representation fo bomberman, it takes sprite, dir and ready as parameters.
+	 * @param sprite actual sprite representing bomberman
+	 * @param dir direction in which bomberman is lookin
+	 * @param ready if bomberman is ready to start a game, it's only relevant to lobby*/
 	public Bomber(Sprite sprite, int dir, boolean ready) {
 		super(sprite);
 		this.direction = dir;

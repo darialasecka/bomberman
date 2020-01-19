@@ -68,8 +68,7 @@ public class Bomberman extends Game {
 	public boolean win = false;
 
 
-
-
+	/** Creates Bomberman and initializes all needed arguments, also setSceen to Lobby */
 	@Override
 	public void create () {
 		game = this;
@@ -116,6 +115,7 @@ public class Bomberman extends Game {
 		batch.dispose();
 	}
 
+	/** Initializes connection beetween Bomberman and Server*/
 	public void connectSocket(){
 		try{
 			InetAddress address = InetAddress.getLocalHost();
@@ -137,13 +137,17 @@ class ServerConnection extends Thread {
 	private DataOutputStream out;
 	private Bomberman bomberman;
 
-
+	/** Connects Bomberman to Server, takes DataInputStream, DataOutputStream and Bomberman as an arguments.
+	 * @param in allows Bomberman to recieve messages from server
+	 * @param out allows Bomberman to send messages to server
+	 * @param bomberman used to get and set values in Bomberman*/
 	public ServerConnection(DataInputStream in, DataOutputStream out, Bomberman bomberman) {
 		this.in = in;
 		this.out = out;
 		this.bomberman = bomberman;
 	}
 
+	/** Recieves and send messages beetween Bomberman and Server.*/
 	public void run() {
 		try {
 			synchronized (out){

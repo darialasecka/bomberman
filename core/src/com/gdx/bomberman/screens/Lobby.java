@@ -28,11 +28,15 @@ public class Lobby implements Screen {
 	Label roomLabel;
 	Game game;
 
+	/** Creates PlayScreen, it takes Bomberman and Game as parameters.
+	 * @param  bomberman allows to get ad set bomberman variables
+	 * @param game allows to change screen in case of starting game*/
 	public Lobby(Bomberman bomberman, Game game){
 		this.bomberman = bomberman;
 		this.game = game;
 	}
 
+	/** Prepares everything to show player when in lobby and handles chat inputs*/
 	@Override
 	public void show() {
 		batch = new SpriteBatch();
@@ -90,6 +94,7 @@ public class Lobby implements Screen {
 		batch.dispose();
 	}
 
+	/** Renders everything that player should see in lobby.*/
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -136,6 +141,7 @@ public class Lobby implements Screen {
 
 	}
 
+	/** Prepares table about players that are in the same room and they status about being ready to play a game*/
 	private Table buildPlayerInfoTable(){
 		Table table = new Table();
 		players_list = new List<String>(skin, "default");
@@ -150,6 +156,7 @@ public class Lobby implements Screen {
 		return table;
 	}
 
+	/** Updates player list if new player joined room, or chenged status*/
 	private void updatePlayersList(){
 		Array<String> temp = new Array<String>();
 
@@ -182,7 +189,7 @@ public class Lobby implements Screen {
 	private ScrollPane chat_scroll;
 	private TextField message_field;
 
-
+	/** Prepares chat table*/
 	private Table buildChatTable(){
 		Table table = new Table();
 
@@ -224,7 +231,7 @@ public class Lobby implements Screen {
 		return table;
 	}
 
-
+	/** Checks if players are ready to start game, and changes screen if needed.*/
 	public void checkStart(){
 		if(bomberman.start){
 			PlayScreen playScreen = new PlayScreen(bomberman, game);

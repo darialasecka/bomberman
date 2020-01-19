@@ -6,11 +6,8 @@ import com.badlogic.gdx.graphics.g2d.*;
 
 import com.gdx.bomberman.screens.GameOver;
 import com.gdx.bomberman.screens.Lobby;
-import com.gdx.bomberman.sprites.Blast;
-import com.gdx.bomberman.sprites.Bomb;
-import com.gdx.bomberman.sprites.Bomber;
+import com.gdx.bomberman.sprites.*;
 import com.gdx.bomberman.screens.PlayScreen;
-import com.gdx.bomberman.sprites.Box;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -43,6 +40,8 @@ public class Bomberman extends Game {
 	public Sprite blastC1;
 	public Sprite blastH1;
 	public Sprite blastV1;
+	public Sprite bombUp;
+	public Sprite powerUp;
 	public HashMap<String, Bomber> otherPlayers;
 	public DataOutputStream out;
 	public DataInputStream in;
@@ -51,11 +50,12 @@ public class Bomberman extends Game {
 	public int direction; // 0-left, 1-right, 2-up, 3-down
 	public HashMap<String, Bomb> bombs;
 	public int currBombCounter = 0;
-	public int MAX_BOMBS = 2;
+	public int MAX_BOMBS = 1;
 	public int BOMB_POWER = 1;
 
 	public HashMap<String, Box> boxes;
 	public HashMap<String, Blast> blasts;
+	public HashMap<String, PowerUp> powerUps;
 
 	//to lobby
 	public int room;
@@ -90,6 +90,7 @@ public class Bomberman extends Game {
 		bombs = new HashMap<>();
 		boxes = new HashMap<>();
 		blasts = new HashMap<>();
+		powerUps = new HashMap<>();
 
 		bombSprite = new Sprite(new Texture("items/bomb.png"));
 		boxSprite = new Sprite(new Texture("items/box.png"));
@@ -102,6 +103,12 @@ public class Bomberman extends Game {
 		blastC1.setSize(blastC1.getWidth() * blastScale, blastC1.getHeight() * blastScale);
 		blastH1.setSize(blastH1.getWidth() * blastScale, blastH1.getHeight() * blastScale);
 		blastV1.setSize(blastV1.getWidth() * blastScale, blastV1.getHeight() * blastScale);
+
+		bombUp = new Sprite(new Texture("items/bombPowerUp.png"));
+		powerUp = new Sprite(new Texture("items/powerPowerUp.png"));
+		float upScale = 1.5f;
+		bombUp.setSize(bombUp.getWidth() * upScale, bombUp.getHeight() * upScale);
+		powerUp.setSize(powerUp.getWidth() * upScale, powerUp.getHeight() * upScale);
 
 		screen = new PlayScreen(this, game);
 		lobby = new Lobby(this, game);
@@ -289,6 +296,35 @@ class ServerConnection extends Thread {
 
 				} else if(msg.startsWith("Winner")) {
 					bomberman.win = true;
+
+				} else if(msg.startsWith("powerUp")){
+					String number = msg.split(" ")[1];
+					String x = msg.split(" ")[2];
+					String y = msg.split(" ")[3];
+					String type = msg.split(" ")[4];
+					float fx = Float.parseFloat(x);
+					float fy = Float.parseFloat(y);
+
+					PowerUp powerUp;
+					if(type.equals("b")) powerUp = new PowerUp(bomberman.bombUp, fx, fy);
+					else powerUp = new PowerUp(bomberman.powerUp, fx, fy);
+					bomberman.powerUps.put(number, powerUp);
+					bomberman.powerUps.get(number).setPosition(fx, fy);
+
+				} else if (msg.startsWith("clearPowerUp")){//właściwie to equals by starczyło ale olać xd
+					bomberman.powerUps.clear();
+
+				} else if (msg.startsWith("picked")){//właściwie to equals by starczyło ale olać xd
+					String id = msg.split(" ")[1];
+					String number = msg.split(" ")[2];
+					String type = msg.split(" ")[3];
+
+					if(id.equals(bomberman.id)){
+						if(type.equals("b")) bomberman.MAX_BOMBS ++;
+						else bomberman.BOMB_POWER++;
+					}
+					bomberman.powerUps.remove(number);
+
 				}
 			}
 		} catch (Exception e) {

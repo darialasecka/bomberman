@@ -13,6 +13,7 @@ public class Server extends Thread{
 	public static int bombNumber = 0;
 	public static int boxNumber = 0;
 	public static int blastNumber = 0;
+	public static int powerUpNumber = 0;
 
 	/** Places new players in correspondings rooms*/
 	public static void main(String args[]) {

@@ -13,10 +13,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.gdx.bomberman.Bomberman;
-import com.gdx.bomberman.sprites.Blast;
-import com.gdx.bomberman.sprites.Bomb;
-import com.gdx.bomberman.sprites.Bomber;
-import com.gdx.bomberman.sprites.Box;
+import com.gdx.bomberman.sprites.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -171,6 +168,12 @@ public class PlayScreen implements Screen {
 		try{
 			for(HashMap.Entry<String, Blast> entry: bomberman.blasts.entrySet()){
 				updateBlast(entry.getValue());
+			}
+		} catch(Exception e) {}
+
+		try{
+			for(HashMap.Entry<String, PowerUp> entry: bomberman.powerUps.entrySet()){
+				entry.getValue().draw(batch);
 			}
 		} catch(Exception e) {}
 

@@ -270,6 +270,22 @@ public class Room {
 		}
 	}
 
+	public void sendPowerUpPositions() throws IOException {
+		for(int i = 1; i < map.size()-1; i++){
+			for(int j = 1; j < walls.size()-1; j++){ //którakolwiek
+				if (map.get(i).get(j).startsWith("b") || map.get(i).get(j).startsWith("p")){
+					float powerUpX = (j * blockSize) - 0.5f;
+					float powerUpY = ((map.size() - 1.15f) * blockSize) - (i * blockSize);//chyba tak xd
+					String type = "";
+					String position = map.get(i).get(j);
+					if (position.startsWith("b")) type = "b";
+					else type = "p";
+					broadcast("powerUp " + Server.powerUpNumber++ + " " + powerUpX + " " + powerUpY + " " + type);
+				}
+			}
+		}
+	}
+
 	/** Sends information about player and hi status to all players in room*/
 	public void updatePlayers(){
 		for(Player player: players_in_room){
